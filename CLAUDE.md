@@ -13,6 +13,10 @@ State is held in a single `state` object (`limit`, `players[]`, `rounds[]`) and 
 
 Live at **https://saikiran9559.github.io/leastcounter/** — GitHub Pages serving `main` branch root.
 
+**To deploy, run the `/deploy` slash command in Claude Code.** It is defined at `.claude/commands/deploy.md` and automates the account switch + credential setup + push + build verification. The sections below document the same steps for reference.
+
+> If you change anything about deployment (account, host, build step, etc.), update **both** this section and `.claude/commands/deploy.md` so they don't drift.
+
 ### Deploy account
 The repo lives under the **`saikiran9559`** GitHub account, not `saikiran-jetti9`. Both accounts are present in `gh auth status`. Before any deploy-related `gh` or `git push` operation:
 
