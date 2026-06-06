@@ -1,0 +1,250 @@
+:root {
+  --bg: #0f1226;
+  --card: #1a1f3a;
+  --card-border: #2a3155;
+  --text: #e8ecff;
+  --muted: #9aa3c7;
+  --accent: #6c8cff;
+  --accent-hover: #557aff;
+  --danger: #ff5d6c;
+  --good: #4ade80;
+  --out: #6b7280;
+  --row-alt: #161b33;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 0 16px 64px;
+}
+
+header {
+  text-align: center;
+  padding: 32px 0 16px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 2rem;
+  letter-spacing: 1px;
+}
+
+.tagline {
+  color: var(--muted);
+  margin: 4px 0 0;
+}
+
+main {
+  max-width: 920px;
+  margin: 0 auto;
+  display: grid;
+  gap: 16px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.card h2 {
+  margin: 0 0 12px;
+  font-size: 1.15rem;
+}
+
+.card h3 {
+  margin: 16px 0 8px;
+  font-size: 1rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  color: var(--muted);
+  gap: 4px;
+}
+
+input[type="text"],
+input[type="number"] {
+  background: #0c0f22;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 8px 10px;
+  font-size: 0.95rem;
+  min-width: 80px;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+button {
+  background: var(--accent);
+  border: none;
+  color: white;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+button:hover { background: var(--accent-hover); }
+
+button.danger {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+button.danger:hover {
+  background: var(--danger);
+  color: white;
+}
+
+button.icon {
+  background: transparent;
+  color: var(--muted);
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  border: 1px solid var(--card-border);
+}
+
+button.icon:hover { color: var(--danger); border-color: var(--danger); }
+
+#player-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+#player-list li {
+  background: #0c0f22;
+  border: 1px solid var(--card-border);
+  padding: 6px 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#player-list li.out {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+th, td {
+  padding: 10px 12px;
+  text-align: center;
+  border-bottom: 1px solid var(--card-border);
+}
+
+th:first-child, td:first-child {
+  text-align: left;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+tbody tr:nth-child(odd) { background: var(--row-alt); }
+
+tfoot th {
+  border-top: 2px solid var(--card-border);
+  border-bottom: none;
+  font-size: 1.05rem;
+  padding-top: 14px;
+}
+
+.player-cell.out { color: var(--out); }
+.player-cell.leader { color: var(--good); }
+
+.round-inputs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.round-inputs label {
+  background: #0c0f22;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+}
+
+.round-inputs label.out { opacity: 0.4; }
+
+#winner-banner {
+  background: linear-gradient(90deg, #1e3a5f, #2a5d3f);
+  border: 1px solid var(--good);
+  color: var(--good);
+  padding: 14px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.hidden { display: none; }
+
+#status-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+
+#status-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #0c0f22;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+}
+
+#status-list li.out { color: var(--out); }
+#status-list li.leader { color: var(--good); border-color: var(--good); }
+
+.empty {
+  color: var(--muted);
+  font-style: italic;
+}
+
+@media (max-width: 480px) {
+  header h1 { font-size: 1.6rem; }
+  .card { padding: 16px; }
+  th, td { padding: 8px 6px; font-size: 0.9rem; }
+}

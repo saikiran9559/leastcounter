@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Least Count Scoreboard</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Least Count</h1>
+    <p class="tagline">Lowest score survives. First to cross the limit is out.</p>
+  </header>
+
+  <main>
+    <section id="setup" class="card">
+      <h2>Setup</h2>
+      <div class="row">
+        <label>
+          Elimination limit
+          <input type="number" id="limit-input" value="250" min="1" />
+        </label>
+        <button id="reset-game" class="danger">Reset game</button>
+      </div>
+
+      <div class="players">
+        <h3>Players</h3>
+        <ul id="player-list"></ul>
+        <div class="row">
+          <input type="text" id="new-player-name" placeholder="Player name" maxlength="20" />
+          <button id="add-player">Add player</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="scoreboard" class="card">
+      <h2>Scoreboard</h2>
+      <div class="table-wrap">
+        <table id="score-table">
+          <thead>
+            <tr id="score-header"><th>Round</th></tr>
+          </thead>
+          <tbody id="score-body"></tbody>
+          <tfoot>
+            <tr id="totals-row"><th>Total</th></tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
+
+    <section id="add-round" class="card">
+      <h2>Add round</h2>
+      <form id="round-form">
+        <div id="round-inputs" class="round-inputs"></div>
+        <button type="submit">Save round</button>
+      </form>
+    </section>
+
+    <section id="status" class="card">
+      <h2>Status</h2>
+      <div id="winner-banner" class="hidden"></div>
+      <ul id="status-list"></ul>
+      <div class="row" style="margin-top: 14px;">
+        <button id="download-pdf">Download PDF</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
