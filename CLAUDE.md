@@ -14,13 +14,22 @@ State is held in a single `state` object (`limit`, `players[]`, `rounds[]`) and 
 Live at **https://saikiran9559.github.io/leastcounter/** — GitHub Pages serving `main` branch root.
 
 ### Deploy account
-The repo lives under the **`saikiran9559`** GitHub account, not `saikiran-jetti9`. Both accounts are present in `gh auth status`. Before any deploy-related `gh` or `git push` operation, switch active account:
+The repo lives under the **`saikiran9559`** GitHub account, not `saikiran-jetti9`. Both accounts are present in `gh auth status`. Before any deploy-related `gh` or `git push` operation:
 
 ```bash
 gh auth switch -u saikiran9559
+gh auth setup-git --hostname github.com   # re-points git credential helper at active token
+gh auth status                            # verify active = saikiran9559
 ```
 
-Verify with `gh auth status` — the active account line should show `saikiran9559`.
+**Why both commands:** `gh auth switch` flips the active gh user, but the git credential helper continues to send the previously-cached token until `gh auth setup-git` is re-run. Skipping step 2 results in `Permission to saikiran9559/leastcounter.git denied to saikiran-jetti9` on push.
+
+### Git commit identity
+This repo is pinned locally to:
+- `user.name = saikiran9559`
+- `user.email = saikiran9559@users.noreply.github.com`
+
+Run `git config --local --get user.name` to confirm. Do not commit under the work identity (`saikiran@techatcore.com`).
 
 ### Initial deploy (already done)
 For reference, the steps that created the live site:
