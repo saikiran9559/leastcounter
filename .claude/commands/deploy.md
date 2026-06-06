@@ -56,4 +56,4 @@ Expect `200`. Report the live URL to the user.
 ## Notes
 
 - The full deploy rationale (why two-step gh switch, why this account) lives in `CLAUDE.md` at the repo root.
-- If the deploy process changes — different account, different host, build step added, etc. — update **this file** alongside `CLAUDE.md` so they stay in sync.
+- If the deploy process changes — different account, different host, build step added, etc. — apply the [`deploy-sync`](../rules/deploy-sync.md) rule: update **this file** alongside the **Deployment** section of `CLAUDE.md` in the same change.

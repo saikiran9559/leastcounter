@@ -2,6 +2,12 @@
 
 Static web app (HTML/CSS/JS, no build step) for tracking scores in the Least Count card game. Open `index.html` directly or visit the deployed site.
 
+## Rules
+
+Project-specific rules that govern how to work on this codebase live in `.claude/rules/`. Consult the relevant rule before making changes in its area; apply its check at the end of any task that triggers it.
+
+- [`deploy-sync`](.claude/rules/deploy-sync.md) — keep `.claude/commands/deploy.md` and the **Deployment** section below in lockstep. Apply at the end of any task that changes deployment.
+
 ## Files
 - `index.html` — markup and CDN script tags (jsPDF + autoTable for export)
 - `styles.css` — dark-theme UI
@@ -15,7 +21,7 @@ Live at **https://saikiran9559.github.io/leastcounter/** — GitHub Pages servin
 
 **To deploy, run the `/deploy` slash command in Claude Code.** It is defined at `.claude/commands/deploy.md` and automates the account switch + credential setup + push + build verification. The sections below document the same steps for reference.
 
-> If you change anything about deployment (account, host, build step, etc.), update **both** this section and `.claude/commands/deploy.md` so they don't drift.
+> Any change to deployment must satisfy the [`deploy-sync`](.claude/rules/deploy-sync.md) rule — update **both** this section and `.claude/commands/deploy.md` in the same change.
 
 ### Deploy account
 The repo lives under the **`saikiran9559`** GitHub account, not `saikiran-jetti9`. Both accounts are present in `gh auth status`. Before any deploy-related `gh` or `git push` operation:
