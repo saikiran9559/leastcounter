@@ -84,6 +84,7 @@ Pick accents that pair well with the dark background — saturated mid-tones, tw
   - `scorely:recent:v1` — `{ gameId: lastOpenedAt }` map for the home "Recent" row
   - `scorely:home-search:v1` — last search query on the home grid
   - `scorely:home-categories:v1` — active category chip filter on the home grid
+  - `scorely:favorites:v1` — array of starred game ids (pinned to the home "Favorites" section)
 - The single legacy fallback `leastcounter:v1` is grandfathered. Don't add more legacy fallbacks.
 
 ### Naming

@@ -177,11 +177,19 @@
     card.href = `#/${g.id}`;
     const accent = g.accent ? ` style="--game-accent: ${g.accent};"` : "";
     const icon = g.icon ? `<div class="game-card-icon"${accent}>${g.icon}</div>` : "";
+    const fav = Scorely.isFavorite(g.id);
     card.innerHTML = `
+      <button class="game-card-star${fav ? " favorited" : ""}" aria-label="${fav ? "Remove from favorites" : "Add to favorites"}" title="${fav ? "Unfavorite" : "Favorite"}">${fav ? "★" : "☆"}</button>
       ${icon}
       <h3>${Scorely.escapeHtml(g.name)}</h3>
       ${g.tagline ? `<p>${Scorely.escapeHtml(g.tagline)}</p>` : ""}
     `;
+    card.querySelector(".game-card-star").addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      Scorely.toggleFavorite(g.id);
+      render();
+    });
     return card;
   }
 
@@ -197,6 +205,21 @@
     `;
     appEl.appendChild(hero);
 
+    // Favorites
+    const favorites = [...Scorely.getFavorites()]
+      .map((id) => Scorely.getGame(id))
+      .filter(Boolean);
+    if (favorites.length > 0) {
+      const favCard = document.createElement("section");
+      favCard.className = "card";
+      favCard.innerHTML = `<h2><span class="section-icon">★</span> Favorites</h2>`;
+      const favGrid = document.createElement("div");
+      favGrid.className = "game-grid";
+      for (const g of favorites) favGrid.appendChild(buildGameCard(g));
+      favCard.appendChild(favGrid);
+      appEl.appendChild(favCard);
+    }
+
     // Recent
     const recentIds = Scorely.getRecentGames(5);
     const recentGames = recentIds
@@ -205,7 +228,7 @@
     if (recentGames.length > 0) {
       const recentCard = document.createElement("section");
       recentCard.className = "card";
-      recentCard.innerHTML = `<h2>Recent</h2>`;
+      recentCard.innerHTML = `<h2><span class="section-icon">🕒</span> Recent</h2>`;
       const recentGrid = document.createElement("div");
       recentGrid.className = "game-grid";
       for (const g of recentGames) recentGrid.appendChild(buildGameCard(g));

@@ -11,6 +11,32 @@
 
   const PLAYER_NAMES_KEY = "scorely:player-names:v1";
   const RECENT_KEY = "scorely:recent:v1";
+  const FAVORITES_KEY = "scorely:favorites:v1";
+
+  Scorely.getFavorites = function () {
+    try {
+      const raw = localStorage.getItem(FAVORITES_KEY);
+      return new Set(raw ? JSON.parse(raw) : []);
+    } catch {
+      return new Set();
+    }
+  };
+
+  Scorely.isFavorite = function (gameId) {
+    return Scorely.getFavorites().has(gameId);
+  };
+
+  Scorely.toggleFavorite = function (gameId) {
+    try {
+      const set = Scorely.getFavorites();
+      if (set.has(gameId)) set.delete(gameId);
+      else set.add(gameId);
+      localStorage.setItem(FAVORITES_KEY, JSON.stringify([...set]));
+      return set.has(gameId);
+    } catch {
+      return false;
+    }
+  };
 
   Scorely.getKnownPlayerNames = function () {
     try {

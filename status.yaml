@@ -23,13 +23,14 @@ live_url: https://saikiran9559.github.io/scorely/
 repo: saikiran9559/scorely
 
 current_phase: 9
-next_up: 9.5
+next_up: 9.6
 notes: >
   Phases 0–8: all 50 candidate games addressed. 49 shipped; Werewolf
   (8.5) is explicit out-of-scope. 7 sibling engines, 15 ADRs.
-  Phase 9 in progress: 9.1–9.4 (the first-bundle) shipped — search,
-  category chips, Recent row, cross-game player-name autocomplete.
-  Next: 9.5 favorites (star + pin), then the rest of Phase 9.
+  Phase 9 in progress: 9.1–9.5 shipped (search, category chips, Recent
+  row, cross-game player-name autocomplete, favorites). Next: 9.6
+  rules popover, then the rest of Phase 9 (PWA, discovery, print,
+  stats, tournament mode, sound effects, custom game builder).
 
 phases:
 
@@ -571,12 +572,12 @@ phases:
 
       - id: 9.5
         title: Favorites — star a game, pin to top
-        status: planned
-        effort: ~45 min
+        status: done
         notes: >
-          Star icon per home card; tap to favorite. Favorites pinned to a
-          row above the grid (alongside Recent). Persists in
-          scorely:favorites:v1.
+          Shipped. Star button per game card; click stops navigation,
+          toggles via Scorely.toggleFavorite. Favorites section renders
+          above Recent on home (only when at least one favorite exists).
+          Persists to scorely:favorites:v1. CSS pop animation on toggle.
 
       - id: 9.6
         title: Rules popover per game

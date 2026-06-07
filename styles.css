@@ -612,6 +612,50 @@ tfoot td {
 }
 .game-card:hover::before { opacity: 1; }
 
+.game-card-star {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 1.35rem;
+  line-height: 1;
+  padding: 4px 6px;
+  cursor: pointer;
+  box-shadow: none;
+  opacity: 0.45;
+  transition: opacity 0.18s ease, color 0.18s ease, transform 0.15s ease;
+  font-weight: 400;
+}
+.game-card:hover .game-card-star { opacity: 1; }
+.game-card-star:hover {
+  color: var(--gold);
+  transform: scale(1.18);
+  box-shadow: none;
+  background: transparent;
+}
+.game-card-star.favorited {
+  color: var(--gold);
+  opacity: 1;
+  text-shadow: 0 0 14px rgba(255, 204, 74, 0.55);
+  animation: star-pop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes star-pop {
+  0%   { transform: scale(0.6); }
+  50%  { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+.section-icon {
+  display: inline-block;
+  font-size: 0.95em;
+  margin-right: 4px;
+  vertical-align: -1px;
+}
+
 .game-card .game-card-icon {
   width: 48px;
   height: 48px;
