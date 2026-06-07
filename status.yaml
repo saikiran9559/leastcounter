@@ -256,8 +256,13 @@ phases:
           impossible-throw disabling, undo last throw. No PDF export yet.
       - id: 4.4
         title: Golf  (18 holes — stroke / stableford / match play modes)
-        status: deferred
-        notes: Stroke mode is trivially the same as Disc Golf; stableford/match-play modes need per-mode computation.
+        status: partial
+        notes: >
+          Stroke play shipped (games/golf.js) — same shape as Disc Golf
+          but listed separately for discoverability. Stableford (direction
+          high, per-hole points) and match-play (count holes won) modes
+          remain deferred — would ship as separate game configs since
+          their directions differ.
       - id: 4.5
         title: Disc golf  (Golf without the modes)
         status: done
