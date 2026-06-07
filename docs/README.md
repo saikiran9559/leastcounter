@@ -10,14 +10,13 @@ The phased implementation plan lives at [`../status.yaml`](../status.yaml) at th
 
 | Path | Purpose |
 |---|---|
-| [`games.md`](games.md) | Catalog of all games (built + planned), grouped by family and complexity |
-| `games/<name>.md` | Per-game design notes — scoring rules, state shape, edge cases |
-| [`hosting.md`](hosting.md) | Hosting setup, why it's free, where the free path would end, migration targets |
-| [`conventions.md`](conventions.md) | Visual design (palette, type, motion), per-game identity, code conventions |
-| `decisions/NNNN-*.md` | Architectural decision records (ADRs) — one per decision, numbered |
-| `architecture.md` | High-level structure, modules, data flow (when warranted) |
-| `conventions.md` | Naming, storage keys, animation policy, browser-support targets |
-| `gotchas.md` | Browser quirks, CDN behaviors, deploy traps |
+| [`architecture.md`](architecture.md) | High-level structure, 7 engines, GameConfig shape, routes, Scorely.* helpers |
+| [`games.md`](games.md) | Catalog of every game with family + complexity + UI pattern |
+| [`conventions.md`](conventions.md) | Palette, typography, motion, PWA, storage keys, code conventions |
+| [`hosting.md`](hosting.md) | Cost model — what makes Scorely free and where that would end |
+| [`decisions/`](decisions/) | Architectural decision records (ADRs), numbered |
+| `games/<name>.md` | Per-game design notes (when warranted — none today) |
+| `gotchas.md` | Browser quirks, CDN behaviors, deploy traps (when warranted — none today) |
 
 Files marked "(when warranted)" don't exist until there's something worth saying. Don't create empty placeholders.
 

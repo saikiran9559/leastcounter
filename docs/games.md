@@ -1,13 +1,14 @@
-# Games that need a scoring website
+# Games catalog
 
-A working catalog of games whose scoring would benefit from a dedicated web tracker. Organized by family. For each game we capture: typical players, what gets tracked per round, the win/lose condition, and notes on UI complexity.
+A reference catalog of games whose scoring is built into Scorely. Organized by family. For each game we capture: typical players, what gets tracked per round, the win/lose condition, and notes on UI complexity.
 
-The repo currently ships **Least Count**. Other games are candidates for future scoring modules — likely sharing the core "players + rounds + totals + win condition" engine already in `app.js`.
+**Current state: 49 of 50 candidate games shipped**, plus a **Game Night Tournament** meta-tracker and **user-built custom games** via the in-app builder (`#/create-game`). The only candidate not shipped is **Werewolf**, which is a state-tracker rather than a scoreboard and is explicit out-of-scope ([ADR 0015](decisions/0015-user-does-the-math-for-domain-heavy-games.md)).
 
 > Phased build plan with task IDs and current status: see [`../status.yaml`](../status.yaml). This file is the reference catalog; `status.yaml` is the execution plan.
 
 Legend:
-- ✅ Built
+- ✅ Built (49 + Tournament)
+- ⛔ Out of scope (Werewolf — state tracker, not scoring)
 - 🟢 Easy (same shape as Least Count)
 - 🟡 Medium (extra columns, multipliers, or per-trick tracking)
 - 🔴 Hard (complex rules, bidding phases, or non-linear scoring)

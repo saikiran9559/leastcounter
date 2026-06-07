@@ -180,11 +180,34 @@ Held in memory and persisted to `localStorage`:
 
 `app.js` parses `window.location.hash`:
 
-- `#/` (or empty) → home screen with a grid of registered games
-- `#/<game-id>` → that game's scoreboard, mounted via `engine.js`
-- `#/<unknown>` → "unknown game" fallback card
+| Hash | Route |
+|---|---|
+| `#/` (or empty) | Home — Favorites + Recent + All games (with search + category chips) |
+| `#/<game-id>` | Game scoreboard, mounted via the matching engine; related-games card appended |
+| `#/stats` | Cross-game stats / hall of fame |
+| `#/create-game` | Custom game builder form + manage list |
+| `#/<unknown>` | "Unknown game" fallback card |
 
 `hashchange` listener re-renders on navigation. Browser back/forward works.
+
+## Cross-cutting helpers (Scorely.*)
+
+Beyond `defineGame`/`getGame`/`createInstance`, the `Scorely` global also hosts a set of helpers added during Phase 9. Each persists to a `scorely:<purpose>:v1` localStorage key (see `docs/conventions.md`).
+
+| Helper | Purpose |
+|---|---|
+| `Scorely.recordPlayerName(name)` | Append to the global name dictionary (autocomplete) |
+| `Scorely.getKnownPlayerNames()` | Read back the dictionary (used by `<datalist id="player-names">`) |
+| `Scorely.refreshPlayerDatalist()` | Re-populate the global datalist; called on home render |
+| `Scorely.touchGame(id)` | Stamp `lastOpenedAt` for the Recent row |
+| `Scorely.getRecentGames(limit)` | Read back recent game ids sorted by lastOpenedAt |
+| `Scorely.getFavorites()` / `.isFavorite(id)` / `.toggleFavorite(id)` | Star and pin games to the home Favorites section |
+| `Scorely.rules` / `Scorely.rulesFor(id)` | Rules-popover content (3–5 bullets per game) |
+| `Scorely.isSoundEnabled()` / `.toggleSound()` | Sound-toggle state |
+| `Scorely.playTap()` / `.playFanfare()` | Web Audio synthesis for score events / winner |
+| `Scorely.fireConfetti()` | CSS confetti + fanfare on winner |
+| `Scorely.getCustomGames()` / `.saveCustomGame(config)` / `.deleteCustomGame(id)` / `.hydrateCustomGames()` | Custom game CRUD; `hydrateCustomGames` runs once at app init before first render |
+| `Scorely.escapeHtml(s)` | Tiny HTML-escape helper used everywhere |
 
 ## Rendering and animations
 

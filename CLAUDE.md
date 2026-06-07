@@ -1,17 +1,17 @@
 # Scorely
 
-A scoring website for tabletop and sport games. Currently ships **Least Count**; planned games are catalogued in [`docs/games.md`](docs/games.md).
+A scoring website for tabletop and sport games. Ships **49 built-in games** (Least Count, UNO, Hearts, Spades, Bridge, Tennis, Bowling, Yahtzee, Mahjong, …) plus a **Game Night Tournament** meta-tracker and an in-app **Create your own** builder for custom games. Live at **https://saikiran9559.github.io/scorely/**.
 
 Repo was renamed from `leastcounter` → `scorely` on 2026-06-07 to reflect the broader multi-game scope. GitHub automatically redirects old URLs, but new links should use the new name.
 
-Static web app (HTML/CSS/JS, no build step). Open `index.html` directly or visit the deployed site.
+Static web app (HTML/CSS/JS, no build step). Open `index.html` directly or visit the deployed site. Installable PWA — works offline once cached.
 
 ## Roadmap
 
-The long-term vision is a scoring website for many tabletop/sport games, not just Least Count.
-
-- **Active plan:** [`status.yaml`](status.yaml) — phased task list (current phase, next-up task, dependencies). Update this whenever a phase or task changes status.
+- **Active plan:** [`status.yaml`](status.yaml) — phased task list. Phases 0–9 are shipped; remaining work is per-game scope follow-ups documented in individual ADRs (Tennis tiebreak, Bowling PDF, Bridge contract calc, Mahjong variant tables, etc.) and per-engine docs.
 - **Full game catalog:** [`docs/games.md`](docs/games.md) — every candidate game with scoring shape, complexity tier, and the shared UI pattern it maps to.
+- **Architecture overview:** [`docs/architecture.md`](docs/architecture.md) — engines, routes, GameConfig contract.
+- **All ADRs:** [`docs/decisions/`](docs/decisions/) — 15 architectural decisions, each one numbered.
 
 ## Rules
 
@@ -21,15 +21,38 @@ Project-specific rules that govern how to work on this codebase live in `.claude
 - [`documentation`](.claude/rules/documentation.md) — write docs in `docs/` for decisions, new games, conventions, and gotchas **without being asked**. The user will not remind you; this rule replaces those reminders. Apply at the end of any non-trivial task.
 
 ## Files
-- `index.html` — shell (header, #app container, script tags)
-- `styles.css` — shared styles (home + all games)
-- `app.js` — bootstrap: hash router (`#/`, `#/<game-id>`) + home screen
-- `engine.js` — generic scoring engine (state, actions, rendering, persistence, animations, PDF export)
-- `games/<slug>.js` — one file per game; each calls `Scorely.defineGame({...})` to register a config
+- `index.html` — shell + script load order. Includes PWA manifest, iOS meta tags, the global `<datalist id="player-names">`, and the `<button id="sound-toggle">`.
+- `styles.css` — shared dark-theme styles + the `@media print` block.
+- `manifest.json` + `icon.svg` + `sw.js` — PWA assets (installable + offline).
+- `app.js` — bootstrap. Hash routes: `#/` (home), `#/<game-id>` (game), `#/stats`, `#/create-game`. Owns `GAME_CATEGORIES` map, search/chips/recent/favorites UI, rules modal, related-games card, sound-toggle wiring, custom-games hydration.
+- **Seven sibling engines** (one per game shape):
+  - `engine.js` — rounds (Least Count, UNO, Hearts, Cribbage, Pinochle, Spades, Pitch, 500, 28, Belote, …). Also hosts cross-cutting helpers (favorites, recent, player-names, sound, custom games).
+  - `engine-grid.js` — fixed N category cells per player (Wingspan, 7 Wonders, Disc Golf, Yahtzee, Golf, Canasta, Archery).
+  - `engine-counter.js` — big +/- buttons (Table Tennis, Pickleball, Badminton, Volleyball, Catan, Pool, Codenames, Whist rubber, Snooker, Tournament).
+  - `engine-ledger.js` — buy-ins / cash-out / net P&L (Poker, Teen Patti).
+  - `engine-tennis.js` — nested points/games/sets/match with deuce/AD.
+  - `engine-bowling.js` — 10 frames with strike/spare carry-over.
+  - `engine-darts-cricket.js` — marks matrix (15–20 + Bull).
+- `games-rules.js` — central `Scorely.rules` map (3–5 bullets per game) consumed by the rules popover.
+- `games/<slug>.js` — one file per game; each calls `Scorely.defineGame({...})` to register a config.
 
-Full architecture and the engine API contract live in [`docs/architecture.md`](docs/architecture.md). Engine API rationale is captured in [ADR 0003](docs/decisions/0003-engine-api.md).
+Full architecture and the GameConfig contract live in [`docs/architecture.md`](docs/architecture.md). Engine API rationale is captured in [ADR 0003](docs/decisions/0003-engine-api.md); subsequent engine ADRs explain each sibling.
 
-Per-game state is persisted to `localStorage` under `scorely:<game-id>:v1` (e.g., `scorely:least-count:v1`). The Least Count instance reads a one-time fallback from the legacy `leastcounter:v1` key if its namespaced key is missing.
+## State and storage
+
+Per-game state: `scorely:<game-id>:v1` (e.g., `scorely:least-count:v1`). The Least Count instance reads a one-time fallback from the legacy `leastcounter:v1` key.
+
+Cross-cutting state (added during Phase 9):
+
+| Key | Purpose |
+|---|---|
+| `scorely:player-names:v1` | Global player-name dictionary (autocomplete across games) |
+| `scorely:recent:v1` | `{ gameId: lastOpenedAt }` for the home "Recent" row |
+| `scorely:home-search:v1` | Last search query on the home grid |
+| `scorely:home-categories:v1` | Active category chip filter |
+| `scorely:favorites:v1` | Array of starred game ids (pinned to home "Favorites") |
+| `scorely:sound:v1` | `"on"` / `"off"` for the sound-effects toggle (default off) |
+| `scorely:custom-games:v1` | Array of user-built game configs (rehydrated on load) |
 
 ## Deployment
 

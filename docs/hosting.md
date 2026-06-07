@@ -12,8 +12,11 @@ Scorely runs entirely free, and the [`status.yaml`](../status.yaml) roadmap is d
 | PDF library | cdnjs (jsPDF + autoTable) | $0 | Public CDN, no enforced rate limit for normal browser use | One request per page load |
 | Persistence | Browser localStorage | $0 | ~5–10 MB per origin | Bytes per saved game |
 | Build pipeline | None | $0 | — | We commit source files directly |
+| PWA (manifest + service worker) | First-party | $0 | localStorage caps as above | Cache version `scorely-v1` (bump in `sw.js`) |
 
-A 50-game Scorely (the full `status.yaml` plan) would still be a few MB of HTML/CSS/JS and a handful of CDN script tags. GitHub Pages would serve millions of monthly visits at this size without nearing any cap.
+The 49-game Scorely is a few MB of HTML/CSS/JS plus two CDN script tags (jsPDF + autoTable, optional — only loaded for PDF export). GitHub Pages serves millions of monthly visits at this size without nearing any cap.
+
+Since Phase 9.7, Scorely is also an installable PWA: a service worker caches every same-origin GET so the app keeps working at the lane/court when wifi is sketchy. iOS/Android users can "Add to Home Screen" and run it like a native app. See [conventions.md → PWA](conventions.md#pwa-since-phase-97) for the cache-version workflow.
 
 ## Why staying free is a design constraint, not an accident
 

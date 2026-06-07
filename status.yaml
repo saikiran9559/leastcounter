@@ -690,6 +690,29 @@ phases:
           selection are out of scope for v1 — power users can
           hand-write a config file. Linked from home footer.
 
+      - id: 9.14
+        title: Documentation refresh after Phase 9
+        status: done
+        notes: >
+          Done. Comprehensive pass:
+          - CLAUDE.md: rewrote the overview to reflect 49+ games and
+            the seven-engine architecture; new 'Files' section lists
+            every engine + role; new 'State and storage' table covers
+            the 7 cross-cutting localStorage keys.
+          - docs/architecture.md: routing now shows all four routes
+            (#/, #/<game>, #/stats, #/create-game) in a table; new
+            'Cross-cutting helpers' section enumerates every Scorely.*
+            API added in Phase 9 (favorites, recent, player-names,
+            sound, custom games, confetti).
+          - docs/games.md: header reads '49 of 50 shipped' with the
+            Werewolf out-of-scope exception called out; new ⛔ legend
+            entry.
+          - docs/hosting.md: 'Current setup' table adds the PWA row;
+            new paragraph about installability + service-worker caching.
+          - docs/README.md: index re-sequenced (architecture first,
+            then games, conventions, hosting, decisions); stale
+            duplicate row for conventions.md removed.
+
 # Estimated game counts per phase (excludes engine work):
 #   Phase 2:  8 games
 #   Phase 3:  8 games
