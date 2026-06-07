@@ -195,12 +195,20 @@ phases:
         notes: Modeled as 2-team target-reach on hands-won. Tens-captured detail not stored separately.
       - id: 3.7
         title: Euchre  (maker + tricks + march + loner)
-        status: deferred
-        notes: Per-round score formula (1 / 2 / 4 points depending on march/loner).
+        status: done
+        notes: >
+          Shipped as plain config — no formula needed. Per hand, user enters
+          the team's points (1 / 2 / 4) directly into the score field; engine
+          sums. Distinguishing march vs loner is left to the user (the
+          tagline reminds them which case maps to which value).
       - id: 3.8
         title: Pitch / Setback  (named-bonus scoring — high/low/jack/game)
-        status: deferred
-        notes: Named-bonus checkboxes + bid-based formula.
+        status: done
+        notes: >
+          Shipped via computeTotal (ADR 0012). Two roundInputs per team
+          (bid + bonuses-won). If bid > 0 (bidder team): bonuses ≥ bid →
+          +bonuses, else −bid. Non-bidder team always +bonuses.
+          formatRoundCell shows "bid N · M" for the bidding team.
       - id: 3.9
         title: Whist (rubber)
         status: deferred
