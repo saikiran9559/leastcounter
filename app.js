@@ -178,8 +178,12 @@
     const accent = g.accent ? ` style="--game-accent: ${g.accent};"` : "";
     const icon = g.icon ? `<div class="game-card-icon"${accent}>${g.icon}</div>` : "";
     const fav = Scorely.isFavorite(g.id);
+    const hasRules = !!(Scorely.rulesFor && Scorely.rulesFor(g.id));
     card.innerHTML = `
-      <button class="game-card-star${fav ? " favorited" : ""}" aria-label="${fav ? "Remove from favorites" : "Add to favorites"}" title="${fav ? "Unfavorite" : "Favorite"}">${fav ? "★" : "☆"}</button>
+      <div class="game-card-actions">
+        ${hasRules ? `<button class="game-card-rules" aria-label="How to play" title="How to play">?</button>` : ""}
+        <button class="game-card-star${fav ? " favorited" : ""}" aria-label="${fav ? "Remove from favorites" : "Add to favorites"}" title="${fav ? "Unfavorite" : "Favorite"}">${fav ? "★" : "☆"}</button>
+      </div>
       ${icon}
       <h3>${Scorely.escapeHtml(g.name)}</h3>
       ${g.tagline ? `<p>${Scorely.escapeHtml(g.tagline)}</p>` : ""}
@@ -190,7 +194,57 @@
       Scorely.toggleFavorite(g.id);
       render();
     });
+    const rulesBtn = card.querySelector(".game-card-rules");
+    if (rulesBtn) {
+      rulesBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openRulesModal(g);
+      });
+    }
     return card;
+  }
+
+  function openRulesModal(game) {
+    const rules = (Scorely.rulesFor && Scorely.rulesFor(game.id)) || [];
+    const accent = game.accent ? ` style="background: ${game.accent};"` : "";
+    const icon = game.icon ? `<div class="game-icon"${accent}>${game.icon}</div>` : "";
+    const bullets = rules.map((r) => `<li>${Scorely.escapeHtml(r)}</li>`).join("");
+
+    const backdrop = document.createElement("div");
+    backdrop.className = "modal-backdrop";
+    backdrop.innerHTML = `
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <button class="modal-close" aria-label="Close">×</button>
+        <div class="modal-head">
+          ${icon}
+          <div>
+            <h2 id="modal-title">${Scorely.escapeHtml(game.name)}</h2>
+            ${game.tagline ? `<p class="tagline">${Scorely.escapeHtml(game.tagline)}</p>` : ""}
+          </div>
+        </div>
+        <h3 class="modal-section-head">How to play</h3>
+        <ul class="modal-rules">${bullets}</ul>
+        <div class="modal-actions">
+          <a class="modal-cta" href="#/${game.id}">Play ${Scorely.escapeHtml(game.name)} →</a>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(backdrop);
+    requestAnimationFrame(() => backdrop.classList.add("open"));
+
+    const close = () => {
+      backdrop.classList.remove("open");
+      setTimeout(() => backdrop.remove(), 180);
+      document.removeEventListener("keydown", onKey);
+    };
+    const onKey = (e) => { if (e.key === "Escape") close(); };
+    document.addEventListener("keydown", onKey);
+    backdrop.querySelector(".modal-close").addEventListener("click", close);
+    backdrop.querySelector(".modal-cta").addEventListener("click", close);
+    backdrop.addEventListener("click", (e) => {
+      if (e.target === backdrop) close();
+    });
   }
 
   function renderHome() {

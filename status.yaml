@@ -23,14 +23,13 @@ live_url: https://saikiran9559.github.io/scorely/
 repo: saikiran9559/scorely
 
 current_phase: 9
-next_up: 9.6
+next_up: 9.7
 notes: >
   Phases 0–8: all 50 candidate games addressed. 49 shipped; Werewolf
   (8.5) is explicit out-of-scope. 7 sibling engines, 15 ADRs.
-  Phase 9 in progress: 9.1–9.5 shipped (search, category chips, Recent
-  row, cross-game player-name autocomplete, favorites). Next: 9.6
-  rules popover, then the rest of Phase 9 (PWA, discovery, print,
-  stats, tournament mode, sound effects, custom game builder).
+  Phase 9 in progress: 9.1–9.6 shipped (search, chips, Recent,
+  autocomplete, favorites, rules popover). Next: 9.7 PWA installable,
+  then 9.8–9.13.
 
 phases:
 
@@ -581,13 +580,14 @@ phases:
 
       - id: 9.6
         title: Rules popover per game
-        status: planned
-        effort: ~2 h
+        status: done
         notes: >
-          Each game config gains an optional `rules: '<markdown or HTML>'`
-          field with a 5-line "how to play" summary. Home card gets a
-          subtle "?" icon; click opens a modal/sheet with the rules.
-          Helps new players land on a game without already knowing it.
+          Shipped. games-rules.js holds a central Scorely.rules map
+          (rules as arrays of bullets, ~3-5 lines per game). All 49
+          games covered. Game card gets a "?" button (top-right next
+          to the star) that opens a styled modal with the rules and a
+          "Play X →" CTA. Modal closes on backdrop click, X button,
+          or Escape key.
 
       - id: 9.7
         title: PWA — installable + offline
