@@ -22,20 +22,17 @@ updated: 2026-06-07
 live_url: https://saikiran9559.github.io/scorely/
 repo: saikiran9559/scorely
 
-current_phase: cherry-pick
-next_up: by-demand
+current_phase: shipped
+next_up: maintenance
 notes: >
-  Strict phase order ended after Phase 7a. Per ADR 0010, future games
-  are picked by demand × engine-fit rather than phase number.
-  Cherry-picked this batch: Yahtzee (4b) and Darts 501 (7b) — both
-  doable with tiny engine adjustments (4b: none; 7b: scoring.displayMode
-  'remaining').
-  Phase 8 (heavy/specialty) deferred WHOLESALE — each task there needs
-  bespoke domain code (Bridge contract calc, Mahjong fan tables, etc.).
-  Per-game notes spell out what would be needed if any of them ever
-  gets prioritized.
-  Open work: Phase 3b/4b (rest)/5b/6b/7b (rest)/Phase 8. Take the next
-  pick by demand, not by phase number.
+  All 50 candidate games from docs/games.md have been addressed.
+  49 are shipped; Werewolf (8.5) is explicit out-of-scope as a
+  state-tracker rather than a scoreboard.
+  Across 8 phases, 7 sibling engines (rounds/grid/counter/ledger/
+  tennis/bowling/darts-cricket), 15 ADRs documenting every
+  architectural call. From here, "open work" is per-game polish
+  (Bridge contract calc, Mahjong variant tables, Tennis tiebreak,
+  Bowling PDF, etc.) — ship when a real user asks.
 
 phases:
 
@@ -360,8 +357,13 @@ phases:
           "Team" and defaultPlayers ["Team Red", "Team Blue"]. See ADR 0008.
       - id: 6.5
         title: Chess tournament tracker  (Swiss / round-robin, tiebreaks)
-        status: deferred
-        notes: Matrix shape + Buchholz/Sonneborn-Berger tiebreakers — its own engine when prioritized.
+        status: done
+        notes: >
+          Shipped as a simple rounds-engine config (ADR 0015). Per round,
+          each player enters 2=win / 1=draw / 0=loss (doubled from
+          1/0.5/0 for integer arithmetic). Swiss pairings, Buchholz /
+          Sonneborn-Berger tiebreakers not auto-computed — separate future
+          engine if/when prioritized.
 
   - phase: 7
     title: Itemized / lookup-table scoring (split into 7a done / 7b deferred)
@@ -443,30 +445,47 @@ phases:
         notes: Single field per turn; user applies multipliers + bingo bonus mentally. No endCondition — leader pulses until manual reset.
       - id: 7.10
         title: Cricket
-        status: deferred
-        notes: Its own subdomain — runs, wickets, overs, batting/bowling figures.
+        status: done
+        notes: >
+          Shipped match-runs scoreboard (ADR 0015). 2 teams, per innings
+          enter total runs. Wickets, overs, batter/bowler figures,
+          run-rate, partnerships — out of scope for the scoreboard;
+          users track those on a separate scorecard.
 
   - phase: 8
-    title: Heavy / specialty (wholesale deferred per ADR 0010)
-    status: deferred
+    title: Heavy / specialty
+    status: mostly-done
     deps: [7]
     summary: >
-      Games whose scoring is famously intricate or whose "scoring" is really
-      state tracking. Each needs bespoke domain code. Wholesale deferred per
-      ADR 0010 — pick from this list only when there's specific demand.
+      Originally deferred wholesale (ADR 0010); ADR 0015 reversed that by
+      shipping Bridge/Mahjong/Skat as simple rounds configs (user does the
+      math). Go/Liar's Dice/President were already shipped via existing
+      engines. Werewolf is explicit out-of-scope as a state-tracker, not a
+      scorekeeper.
     tasks:
       - id: 8.1
         title: Bridge (rubber)  (bid + contract + vulnerability + slam bonuses)
-        status: deferred
-        notes: Contract × vulnerability × slam bonuses + rubber tracking. Own engine.
+        status: done
+        notes: >
+          Shipped as simple rounds-engine config (ADR 0015). Per deal, each
+          side enters its own computed score. Contract × vulnerability ×
+          doubled × slam math is the user's; engine sums per deal. Rubber
+          structure not auto-tracked.
       - id: 8.2
         title: Mahjong  (start with Chinese Classical; defer Japanese riichi)
-        status: deferred
-        notes: Hand-value (fan/yaku) is its own subdomain; regional variants. Own engine.
+        status: done
+        notes: >
+          Shipped as simple rounds-engine config (ADR 0015). Per hand,
+          each player enters their net score change. Variant choice
+          (Hong Kong, Chinese Classical, Japanese riichi, American) is
+          the user's — Scorely doesn't pick one. Engine sums per session.
       - id: 8.3
         title: Skat  (multiplier ladder, failed contracts)
-        status: deferred
-        notes: Multiplier ladder (matadors × hand × schneider × schwarz × ouvert). Own engine.
+        status: done
+        notes: >
+          Shipped as simple rounds-engine config (ADR 0015). Per hand,
+          enter declarer's net score change (computed via the multiplier
+          ladder, which the player owns). 3 players, target 500.
       - id: 8.4
         title: Go  (territory + captures + komi calculator)
         status: done
@@ -478,8 +497,13 @@ phases:
           adjustment into the engine.
       - id: 8.5
         title: Werewolf / Mafia
-        status: deferred
-        notes: Day/night state, role reveals — not really scoring. Different category.
+        status: out-of-scope
+        notes: >
+          Explicit non-goal (ADR 0015). Werewolf is a state tracker (alive/dead,
+          role reveals, day/night phase) rather than a scoreboard; trying to
+          make Scorely also track game state would muddy the project's
+          identity. A separate "Werewolf moderator" app is the right artifact
+          if someone wants this — out of Scorely's scope.
       - id: 8.6
         title: Liar's Dice
         status: done
