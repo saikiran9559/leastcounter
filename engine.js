@@ -141,6 +141,9 @@
     }
 
     function totalFor(playerId) {
+      if (typeof config.computeTotal === "function") {
+        return config.computeTotal(state, playerId, config);
+      }
       return state.rounds.reduce(
         (sum, r) => sum + roundTotal(getEntry(r, playerId)),
         0
@@ -499,8 +502,12 @@
         for (const p of state.players) {
           const td = document.createElement("td");
           const entry = getEntry(r, p.id);
-          const hasAny = roundInputs().some((f) => f.type !== "checkbox" && Number.isFinite(Number(entry[f.key])));
-          td.textContent = hasAny ? roundTotal(entry) : "—";
+          if (typeof config.formatRoundCell === "function") {
+            td.textContent = config.formatRoundCell(entry) || "—";
+          } else {
+            const hasAny = roundInputs().some((f) => f.type !== "checkbox" && Number.isFinite(Number(entry[f.key])));
+            td.textContent = hasAny ? roundTotal(entry) : "—";
+          }
           tr.appendChild(td);
         }
 
@@ -734,7 +741,11 @@
       `R${idx + 1}`,
       ...state.players.map((p) => {
         const entry = helpers.getEntry(r, p.id);
-        return Object.keys(entry).length === 0 ? "—" : String(helpers.roundTotal(entry));
+        if (Object.keys(entry).length === 0) return "—";
+        if (typeof config.formatRoundCell === "function") {
+          return config.formatRoundCell(entry) || "—";
+        }
+        return String(helpers.roundTotal(entry));
       }),
     ]);
     const totalsRow = [

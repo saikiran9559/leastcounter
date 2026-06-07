@@ -130,6 +130,13 @@ The internal `getEntry(round, playerId)` helper normalizes to `{ score, ...extra
 
 **Display mode.** Since [ADR 0010](decisions/0010-cherry-pick-b-phases-and-displaymode.md), `scoring.displayMode: 'remaining'` (optional) flips the totals row and status list to show `target - total` instead of `total`. State and win logic are unchanged. Used by Darts 501 for the countdown look.
 
+**Formula games.** Since [ADR 0012](decisions/0012-formula-callbacks-for-bid-vs-made-games.md), the rounds engine accepts two opt-in callbacks for genuinely formula-driven games (Spades, future Euchre/Pitch/500/Bridge):
+
+- `config.computeTotal(state, playerId, config) → number` — replaces the default field-sum total. Game does the full computation including cumulative effects (e.g. Spades' bag overflow penalty).
+- `config.formatRoundCell(entry) → string` — replaces the default per-round table cell display. Useful when the raw `bid/tricks` pair is more informative than their arithmetic sum.
+
+Most games don't declare either; they use the engine's defaults.
+
 The `direction × endCondition` matrix the engine supports today:
 
 | direction | endCondition | Example | Behavior |

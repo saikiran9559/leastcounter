@@ -168,8 +168,13 @@ phases:
         notes: Full team-layout (per-team player rosters) deferred to Phase 3b.
       - id: 3.2
         title: Spades  (bid + tricks + bag-overflow penalty)
-        status: deferred
-        notes: Needs per-round score formula (bid vs made; +10/trick if made, -10/trick if set; bag penalty at 10).
+        status: done
+        notes: >
+          Shipped via per-game computeTotal callback (ADR 0012, partial
+          revision of ADR 0003). 2 teams via playerNoun, bid+tricks per
+          hand, computeTotal walks rounds applying the bid×10 + bags
+          formula with 10-bag -100 penalty. formatRoundCell shows "B/T"
+          (bid/tricks) per cell.
       - id: 3.3
         title: Hearts  (shoot-the-moon toggle, 4 players, no teams)
         status: done

@@ -1,7 +1,7 @@
 # 0003 — Engine API: configs over callbacks
 
 **Date:** 2026-06-07
-**Status:** Accepted
+**Status:** Accepted; partially superseded by [0012](0012-formula-callbacks-for-bid-vs-made-games.md) (the "callback-heavy" rejection is narrowed to win-condition flags; per-game score *formulas* now accept an opt-in `computeTotal` callback)
 
 ## Context
 
