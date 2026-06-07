@@ -31,3 +31,4 @@ Files marked "(when warranted)" don't exist until there's something worth saying
 - [`0006-grid-engine.md`](decisions/0006-grid-engine.md) — sibling engine-grid.js for category-grid games (Wingspan, 7 Wonders, Disc Golf), and the Phase 4a/4b split
 - [`0007-counter-engine.md`](decisions/0007-counter-engine.md) — third sibling engine-counter.js for big-button counter games (Table Tennis, Catan, Pool, ...), Phase 5a/5b split
 - [`0008-ledger-engine-and-dispatch.md`](decisions/0008-ledger-engine-and-dispatch.md) — fourth sibling engine-ledger.js (Poker, Teen Patti) + generalize app.js dispatch into a shape→factory map
+- [`0009-sum-all-numeric-round-fields.md`](decisions/0009-sum-all-numeric-round-fields.md) — engine sums *all* numeric round-input fields, not just `score` (unlocks Cribbage peg+show, Pinochle meld+tricks)

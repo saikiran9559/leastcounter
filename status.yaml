@@ -22,19 +22,17 @@ updated: 2026-06-07
 live_url: https://saikiran9559.github.io/scorely/
 repo: saikiran9559/scorely
 
-current_phase: 7
-next_up: 7.1
+current_phase: 8
+next_up: 8.1
 notes: >
-  Phase 3 split into 3a done / 3b deferred (score formulas).
-  Phase 4 split into 4a done (grid engine + Wingspan/7W/Disc Golf) / 4b
-  deferred (Yahtzee/Bowling/Golf modes/Archery).
-  Phase 5 split into 5a done (counter engine + 6 games) / 5b deferred
-  (Tennis nested, Backgammon cube).
-  Phase 6 split into 6a done (ledger engine + Poker/Teen Patti; Codenames
-  via counter engine) / 6b deferred (Chess tournament — needs matrix +
-  tiebreakers). Four sibling engines now share the app via a
-  shape → factory map (ADR 0008). Moving on to Phase 7 (itemized /
-  lookup-table scoring — Cribbage, Bridge, Darts, etc.).
+  Phase 7 split into 7a done (Cribbage, Pinochle, Scrabble via small
+  engine tweak — sum all numeric fields, not just 'score'; ADR 0009)
+  and 7b deferred (Canasta, 500, Belote, Darts 501/Cricket, Snooker,
+  Cricket — each needs custom score formulas / shapes).
+  Across phases: 6 of 8 are partial (3a-6a done, 3b-6b deferred); 7a
+  done, 7b deferred. Moving on to Phase 8 (heavy / specialty) which
+  is already labeled as "lowest value-per-effort." Honest expectation:
+  ship 0-2 games from Phase 8 then declare the build-out a soft stop.
 
 phases:
 
@@ -312,44 +310,57 @@ phases:
         notes: Matrix shape + Buchholz/Sonneborn-Berger tiebreakers — its own engine when prioritized.
 
   - phase: 7
-    title: Itemized / lookup-table scoring
-    status: planned
+    title: Itemized / lookup-table scoring (split into 7a done / 7b deferred)
+    status: partial
     deps: [3, 4]
     summary: >
-      Games where scoring is a sum of named bonuses (cribbage show, scrabble
-      multipliers) or a bid-result lookup table (500, bridge). Each game needs
-      a custom score-entry form on top of the engine.
+      Phase 7a (done): Cribbage, Pinochle, Scrabble — all expressible as
+      rounds with multiple numeric fields after a small engine tweak
+      (sum all numeric fields, not just 'score'). ADR 0009.
+      Phase 7b (deferred): 7 games needing custom score formulas or
+      different shapes (Canasta grid, 500 bid table, Belote, Darts
+      countdown, Darts Cricket matrix, Snooker nested, Cricket domain).
     tasks:
       - id: 7.1
-        title: Cribbage  (with show calculator — pairs, runs, 15s, flushes, nobs)
-        status: planned
+        title: Cribbage  (peg + show per hand, first to 121)
+        status: done
+        notes: User counts pairs/runs/15s/flushes/nobs manually and enters totals; engine sums.
       - id: 7.2
-        title: Pinochle  (meld + tricks, itemized meld entry)
-        status: planned
+        title: Pinochle  (meld + tricks per hand, first to 150)
+        status: done
+        notes: 2-team partnership; user counts meld + tricks manually and enters totals.
       - id: 7.3
-        title: Canasta  (melds, canastas, red threes, going-out bonus, hand penalty)
-        status: planned
+        title: Canasta
+        status: deferred
+        notes: Many itemized bonuses (red threes, clean/dirty canastas, going-out, hand penalty) — grid card per hand.
       - id: 7.4
-        title: 500  (bid-value lookup table, misère)
-        status: planned
+        title: 500
+        status: deferred
+        notes: Bid-value lookup table (6 spades = 40, 7 hearts = 160, misère = ...) — computed score.
       - id: 7.5
         title: Belote / Coinche
-        status: planned
+        status: deferred
+        notes: Declarations + per-deal value formulas.
       - id: 7.6
-        title: Darts 501 / 301 / 701  (running countdown, double-out, checkout suggestions)
-        status: planned
+        title: Darts 501 / 301 / 701
+        status: deferred
+        notes: Reverse-display countdown (remaining = 501 − scored) with bust rule and double-out finish.
       - id: 7.7
-        title: Darts Cricket  (15–20 + bullseye matrix UI)
-        status: planned
+        title: Darts Cricket
+        status: deferred
+        notes: Marks-per-number matrix (15–20 + bull) — different shape.
       - id: 7.8
-        title: Snooker  (frame break calculator + match frames)
-        status: planned
+        title: Snooker
+        status: deferred
+        notes: In-frame break calculator + frame-of-match counter (nested).
       - id: 7.9
-        title: Scrabble  (multiplier helper, 50-pt bingo bonus)
-        status: planned
+        title: Scrabble  (per-turn score, manual game-end)
+        status: done
+        notes: Single field per turn; user applies multipliers + bingo bonus mentally. No endCondition — leader pulses until manual reset.
       - id: 7.10
-        title: Cricket  (runs/wickets/overs — likely its own subdomain)
-        status: planned
+        title: Cricket
+        status: deferred
+        notes: Its own subdomain — runs, wickets, overs, batting/bowling figures.
 
   - phase: 8
     title: Heavy / specialty

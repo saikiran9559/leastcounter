@@ -130,9 +130,19 @@
       }, 0);
     }
 
+    function roundTotal(entry) {
+      let total = 0;
+      for (const field of roundInputs()) {
+        if (field.type === "checkbox") continue;
+        const v = Number(entry[field.key]);
+        if (Number.isFinite(v)) total += v;
+      }
+      return total;
+    }
+
     function totalFor(playerId) {
       return state.rounds.reduce(
-        (sum, r) => sum + (getEntry(r, playerId).score || 0),
+        (sum, r) => sum + roundTotal(getEntry(r, playerId)),
         0
       );
     }
@@ -480,8 +490,9 @@
 
         for (const p of state.players) {
           const td = document.createElement("td");
-          const v = getEntry(r, p.id).score;
-          td.textContent = v === undefined ? "—" : v;
+          const entry = getEntry(r, p.id);
+          const hasAny = roundInputs().some((f) => f.type !== "checkbox" && Number.isFinite(Number(entry[f.key])));
+          td.textContent = hasAny ? roundTotal(entry) : "—";
           tr.appendChild(td);
         }
 
@@ -622,7 +633,7 @@
         }
       });
       container.querySelector("#reset-game").onclick = resetGame;
-      container.querySelector("#download-pdf").onclick = () => Scorely.exportPdf(config, state, { totalFor, isOut, winner, getEntry });
+      container.querySelector("#download-pdf").onclick = () => Scorely.exportPdf(config, state, { totalFor, isOut, winner, getEntry, roundTotal });
 
       container.querySelector("#round-form").addEventListener("submit", (e) => {
         e.preventDefault();
@@ -692,14 +703,13 @@
 
     doc.setFontSize(10);
     doc.setTextColor(110);
+    const hasThreshold = config.scoring.thresholdKey && threshold !== undefined;
     const thresholdLabel =
       config.scoring.endCondition === "threshold-elim" ? "Elimination limit" : "Target";
-    doc.text(
-      `Generated ${dateStr}  •  ${thresholdLabel}: ${threshold}`,
-      pageWidth / 2,
-      25,
-      { align: "center" }
-    );
+    const headerText = hasThreshold
+      ? `Generated ${dateStr}  •  ${thresholdLabel}: ${threshold}`
+      : `Generated ${dateStr}`;
+    doc.text(headerText, pageWidth / 2, 25, { align: "center" });
     doc.setTextColor(0);
 
     if (w) {
@@ -713,8 +723,8 @@
     const body = state.rounds.map((r, idx) => [
       `R${idx + 1}`,
       ...state.players.map((p) => {
-        const v = helpers.getEntry(r, p.id).score;
-        return v === undefined ? "—" : String(v);
+        const entry = helpers.getEntry(r, p.id);
+        return Object.keys(entry).length === 0 ? "—" : String(helpers.roundTotal(entry));
       }),
     ]);
     const totalsRow = [

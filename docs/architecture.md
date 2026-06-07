@@ -125,6 +125,8 @@ Rounds support two formats; the engine reads both, writes the new one:
 
 The internal `getEntry(round, playerId)` helper normalizes to `{ score, ...extraFields }`. Existing saved games keep working through this read-fallback; new rounds added after the extension always use the new format.
 
+**Multi-field totals.** Since [ADR 0009](decisions/0009-sum-all-numeric-round-fields.md), the engine sums *every* numeric field declared in `roundInputs` into the running total (not just `score`). Checkboxes and other non-numeric fields are ignored for scoring. This unlocks Cribbage (`peg + show`) and Pinochle (`meld + tricks`) as plain configs. Backwards-compatible — every prior game declared only `score`, so the sum equals the old per-cell value.
+
 The `direction × endCondition` matrix the engine supports today:
 
 | direction | endCondition | Example | Behavior |
