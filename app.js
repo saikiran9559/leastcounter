@@ -112,6 +112,7 @@
   function parseRoute() {
     const hash = window.location.hash.replace(/^#\/?/, "");
     if (!hash) return { name: "home" };
+    if (hash === "stats") return { name: "stats" };
     return { name: "game", gameId: hash };
   }
 
@@ -123,6 +124,14 @@
       backNav.classList.add("hidden");
       subtitle.textContent = "Scoreboard for your games";
       renderHome();
+      return;
+    }
+
+    if (route.name === "stats") {
+      backNav.classList.remove("hidden");
+      subtitle.textContent = "Cross-game stats & hall of fame";
+      document.title = "Scorely · Stats";
+      renderStats();
       return;
     }
 
@@ -354,8 +363,9 @@
     footer.className = "card home-footer";
     footer.innerHTML = `
       <p class="muted">
-        More games coming — see the
-        <a href="https://github.com/saikiran9559/scorely/blob/main/status.yaml">roadmap</a>.
+        <a href="#/stats">📊 Stats &amp; hall of fame</a>
+        &nbsp;·&nbsp;
+        <a href="https://github.com/saikiran9559/scorely/blob/main/status.yaml">Roadmap</a>
       </p>
     `;
     appEl.appendChild(footer);
@@ -416,6 +426,133 @@
         renderBrowseGrid();
       });
     }
+  }
+
+  function collectStats() {
+    const perGame = [];
+    const playerAppearances = new Map(); // normalized name -> { display, count, games: Set }
+    const recentMap = (() => {
+      try { return JSON.parse(localStorage.getItem("scorely:recent:v1") || "{}"); }
+      catch { return {}; }
+    })();
+
+    for (const game of Scorely.games) {
+      const raw = localStorage.getItem(`scorely:${game.id}:v1`);
+      if (!raw) continue;
+      let state;
+      try { state = JSON.parse(raw); } catch { continue; }
+      const players = Array.isArray(state.players) ? state.players : [];
+      if (players.length === 0) continue;
+
+      perGame.push({
+        game,
+        players: players.map((p) => p.name),
+        lastOpened: recentMap[game.id] || null,
+      });
+
+      for (const p of players) {
+        const key = (p.name || "").trim().toLowerCase();
+        if (!key) continue;
+        const existing = playerAppearances.get(key);
+        if (existing) {
+          existing.count += 1;
+          existing.games.add(game.id);
+        } else {
+          playerAppearances.set(key, {
+            display: p.name.trim(),
+            count: 1,
+            games: new Set([game.id]),
+          });
+        }
+      }
+    }
+
+    const topPlayers = [...playerAppearances.values()]
+      .sort((a, b) => b.count - a.count || a.display.localeCompare(b.display));
+
+    perGame.sort((a, b) => (b.lastOpened || 0) - (a.lastOpened || 0));
+
+    return {
+      gamesTracked: perGame.length,
+      uniquePlayers: playerAppearances.size,
+      topPlayers,
+      perGame,
+    };
+  }
+
+  function renderStats() {
+    const s = collectStats();
+
+    const hero = document.createElement("section");
+    hero.className = "card stats-hero";
+    hero.innerHTML = `
+      <h2>📊 Hall of Fame</h2>
+      <div class="stats-grid">
+        <div class="stat-tile"><div class="stat-value">${s.gamesTracked}</div><div class="stat-label">games tracked</div></div>
+        <div class="stat-tile"><div class="stat-value">${s.uniquePlayers}</div><div class="stat-label">unique players</div></div>
+        <div class="stat-tile"><div class="stat-value">${Scorely.games.length}</div><div class="stat-label">total games</div></div>
+      </div>
+    `;
+    appEl.appendChild(hero);
+
+    if (s.gamesTracked === 0) {
+      const empty = document.createElement("section");
+      empty.className = "card";
+      empty.innerHTML = `
+        <p class="empty">No saved games yet. Open any game, add some players, score a round — your stats will start appearing here.</p>
+      `;
+      appEl.appendChild(empty);
+      return;
+    }
+
+    // Top players
+    const playersCard = document.createElement("section");
+    playersCard.className = "card";
+    playersCard.innerHTML = `<h2>Top players</h2>`;
+    const playersList = document.createElement("ul");
+    playersList.className = "stats-players";
+    for (const p of s.topPlayers.slice(0, 12)) {
+      const li = document.createElement("li");
+      const medal = p === s.topPlayers[0] ? "🥇 " : p === s.topPlayers[1] ? "🥈 " : p === s.topPlayers[2] ? "🥉 " : "";
+      li.innerHTML = `
+        <span class="stats-player-name">${medal}${Scorely.escapeHtml(p.display)}</span>
+        <span class="stats-player-meta">${p.count} game${p.count === 1 ? "" : "s"} · ${p.games.size} different</span>
+      `;
+      playersList.appendChild(li);
+    }
+    if (s.topPlayers.length === 0) {
+      playersList.innerHTML = '<li class="empty">No players recorded yet.</li>';
+    }
+    playersCard.appendChild(playersList);
+    appEl.appendChild(playersCard);
+
+    // Per-game breakdown
+    const gamesCard = document.createElement("section");
+    gamesCard.className = "card";
+    gamesCard.innerHTML = `<h2>Per-game breakdown</h2>`;
+    const gamesList = document.createElement("ul");
+    gamesList.className = "stats-games";
+    for (const entry of s.perGame) {
+      const li = document.createElement("li");
+      const accent = entry.game.accent ? ` style="background: ${entry.game.accent};"` : "";
+      const icon = entry.game.icon ? `<span class="stats-game-icon"${accent}>${entry.game.icon}</span>` : "";
+      const when = entry.lastOpened
+        ? new Date(entry.lastOpened).toLocaleDateString(undefined, { month: "short", day: "numeric" })
+        : "—";
+      li.innerHTML = `
+        <a class="stats-game-link" href="#/${entry.game.id}">
+          ${icon}
+          <div class="stats-game-info">
+            <div class="stats-game-name">${Scorely.escapeHtml(entry.game.name)}</div>
+            <div class="stats-game-players">${entry.players.map((n) => Scorely.escapeHtml(n)).join(" · ")}</div>
+          </div>
+          <div class="stats-game-when">${when}</div>
+        </a>
+      `;
+      gamesList.appendChild(li);
+    }
+    gamesCard.appendChild(gamesList);
+    appEl.appendChild(gamesCard);
   }
 
   window.addEventListener("hashchange", render);

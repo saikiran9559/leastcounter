@@ -23,13 +23,13 @@ live_url: https://saikiran9559.github.io/scorely/
 repo: saikiran9559/scorely
 
 current_phase: 9
-next_up: 9.10
+next_up: 9.11
 notes: >
   Phases 0–8: all 50 candidate games addressed. 49 shipped; Werewolf
   (8.5) is explicit out-of-scope. 7 sibling engines, 15 ADRs.
-  Phase 9 in progress: 9.1–9.9 shipped (search, chips, Recent,
+  Phase 9 in progress: 9.1–9.10 shipped (search, chips, Recent,
   autocomplete, favorites, rules popover, PWA, related-games, print
-  stylesheet). Next: 9.10 game stats / hall of fame.
+  stylesheet, stats). Next: 9.11 tournament / game-night mode.
 
 phases:
 
@@ -628,13 +628,17 @@ phases:
 
       - id: 9.10
         title: Game stats / hall of fame
-        status: planned
-        effort: ~3 h
+        status: done
         notes: >
-          Cross-game stats page (#/stats) — across all your saved games,
-          who has the most wins, biggest comeback, longest streak, most
-          games played. Reads all scorely:*:v1 keys, aggregates by
-          player name (which only works if 9.4 normalizes names).
+          Shipped at #/stats. Reads every scorely:<gameId>:v1 key plus
+          scorely:recent:v1 for last-opened timestamps. Aggregates by
+          normalized (lowercase-trimmed) player name. Shows three tiles
+          (games tracked / unique players / total games), a top-12
+          players leaderboard with medals 🥇🥈🥉 by appearance count,
+          and a per-game breakdown listing each saved game's players
+          and when it was last opened. Linked from the home footer.
+          v1 omits exact winner tracking (would need per-engine
+          shape switches) — a future polish.
 
       - id: 9.11
         title: Tournament / game-night mode

@@ -1628,6 +1628,148 @@ tfoot td {
   animation: confetti-fall var(--cdur, 3.2s) cubic-bezier(0.4, 0.6, 0.6, 1) forwards;
 }
 
+/* Stats page (9.10) */
+
+.stats-hero h2 {
+  text-align: center;
+  font-size: 1.6rem;
+  margin-bottom: 16px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.stat-tile {
+  background: rgba(7, 9, 26, 0.55);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 18px 14px;
+  text-align: center;
+}
+
+.stat-value {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 2.4rem;
+  font-variant-numeric: tabular-nums;
+  background: var(--grad-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  line-height: 1;
+}
+
+.stat-label {
+  margin-top: 6px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.stats-players {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.stats-players li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 12px 14px;
+  background: rgba(7, 9, 26, 0.55);
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  gap: 12px;
+}
+
+.stats-player-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.stats-player-meta {
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.stats-games {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.stats-game-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(7, 9, 26, 0.55);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.18s ease, transform 0.15s ease;
+}
+.stats-game-link:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.stats-game-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 1.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--grad-primary);
+  flex-shrink: 0;
+}
+
+.stats-game-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.stats-game-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+}
+
+.stats-game-players {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stats-game-when {
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
 /* Print stylesheet (9.9) — paper-friendly scoresheets */
 @media print {
   @page { margin: 12mm; size: auto; }
