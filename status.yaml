@@ -456,8 +456,12 @@ phases:
           not dice lost. Custom winnerBanner via new engine callback.
       - id: 8.7
         title: President / Asshole
-        status: deferred
-        notes: Finishing-order ladder over a session — closer to a game-show tracker.
+        status: done
+        notes: >
+          Shipped as rounds engine config — per round, each player enters
+          their finishing position (1 = President, … N = Scum). Cumulative
+          rank sum, direction low, no endCondition (manual game-end).
+          Lower sum = consistently higher finishes.
 
 # Estimated game counts per phase (excludes engine work):
 #   Phase 2:  8 games
