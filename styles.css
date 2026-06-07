@@ -971,6 +971,99 @@ tfoot td {
 .house-balance-row strong.net-positive { color: var(--gold); }
 .house-balance-row strong.net-negative { color: var(--danger); }
 
+/* Tennis (engine-tennis.js) */
+
+.tennis-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.tennis-deuce {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-align: center;
+  font-size: 1.1rem;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 205, 74, 0.18), rgba(180, 108, 255, 0.18));
+  border: 1px solid rgba(255, 205, 74, 0.5);
+  color: var(--gold);
+}
+
+.tennis-side {
+  background: linear-gradient(180deg, rgba(28, 33, 80, 0.6) 0%, rgba(22, 26, 58, 0.7) 100%);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 18px 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.tennis-side.tennis-winner {
+  border-color: var(--good);
+  box-shadow: 0 0 0 1px var(--good), 0 12px 32px rgba(74, 222, 128, 0.22);
+}
+
+.tennis-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+}
+
+.tennis-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr;
+  gap: 4px;
+  align-items: end;
+}
+
+.tennis-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tennis-stat-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+}
+.tennis-stat-value {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.7rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.tennis-stat-points .tennis-stat-value {
+  font-size: clamp(2rem, 7vw, 2.8rem);
+  color: var(--accent-3);
+}
+
+.tennis-point-btn {
+  padding: 16px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+.tennis-point-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+
+@media (max-width: 480px) {
+  .tennis-stat-value { font-size: 1.4rem; }
+  .tennis-stat-points .tennis-stat-value { font-size: 2rem; }
+}
+
 /* Confetti — instantiated by JS only on winner */
 .confetti-piece {
   position: fixed;

@@ -268,8 +268,13 @@ phases:
         status: done
       - id: 5.3
         title: Tennis  (nested — points → games → sets → match, deuce/advantage logic)
-        status: deferred
-        notes: Nested counters require a different shape; revisit when there's clearer demand.
+        status: done
+        notes: >
+          Shipped via fifth sibling engine-tennis.js (ADR 0011). Faithful
+          points/games/sets/match nesting with deuce/advantage logic.
+          Scope limits documented in tagline: no tiebreak at 6-6
+          (advantage set instead), no service indicator, no undo. Each
+          is one focused follow-up away.
       - id: 5.4
         title: Pool / 8-ball  (rack counter + fouls)
         status: done

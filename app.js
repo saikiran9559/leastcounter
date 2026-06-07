@@ -41,6 +41,7 @@
       grid: Scorely.createGridInstance,
       counter: Scorely.createCounterInstance,
       ledger: Scorely.createLedgerInstance,
+      tennis: Scorely.createTennisInstance,
     };
     const factory = factories[config.shape] || factories.rounds;
     const instance = factory(config.id);
