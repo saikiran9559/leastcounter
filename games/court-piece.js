@@ -1,6 +1,8 @@
 Scorely.defineGame({
   id: "court-piece",
   name: "Court Piece",
+  icon: "⚔️",
+  accent: "linear-gradient(135deg, #4ade80 0%, #4ee7ff 100%)",
   tagline:
     "Two teams. Each round, enter how many hands each team won. First to the target wins the game. (Kot bonus not auto-applied — track it manually.)",
   settings: {

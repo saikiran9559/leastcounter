@@ -9,6 +9,26 @@
     return Scorely.games.find((g) => g.id === id) || null;
   };
 
+  Scorely.fireConfetti = function () {
+    if (typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const colors = ["#7c8eff", "#b46cff", "#ff5d83", "#ffcc4a", "#4ee7ff", "#4ade80"];
+    const count = 90;
+    for (let i = 0; i < count; i++) {
+      const el = document.createElement("div");
+      el.className = "confetti-piece";
+      el.style.left = (Math.random() * 100) + "vw";
+      el.style.setProperty("--cx", (Math.random() * 40 - 20) + "vw");
+      el.style.setProperty("--cdur", (2.4 + Math.random() * 2.0) + "s");
+      el.style.background = colors[i % colors.length];
+      el.style.animationDelay = (Math.random() * 0.4) + "s";
+      el.style.width = (6 + Math.random() * 8) + "px";
+      el.style.height = (10 + Math.random() * 8) + "px";
+      el.style.borderRadius = Math.random() > 0.5 ? "2px" : "50%";
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 5500);
+    }
+  };
+
   Scorely.escapeHtml = function (s) {
     return String(s).replace(/[&<>"']/g, (c) => ({
       "&": "&amp;",
@@ -73,6 +93,7 @@
     const state = loadState(config);
     let prevSnapshot = emptySnapshot();
     let container = null;
+    let lastWinnerId = null;
 
     function persist() {
       saveState(config, state);
@@ -294,10 +315,17 @@
       const l = labels();
       const w = winner();
 
+      const iconStyle = config.accent ? ` style="background: ${config.accent};"` : "";
+      const iconBadge = config.icon
+        ? `<div class="game-icon"${iconStyle}>${config.icon}</div>`
+        : "";
       container.innerHTML = `
         <section class="card game-header">
-          <h2>${Scorely.escapeHtml(config.name)}</h2>
-          ${config.tagline ? `<p class="tagline">${Scorely.escapeHtml(config.tagline)}</p>` : ""}
+          ${iconBadge}
+          <div>
+            <h2>${Scorely.escapeHtml(config.name)}</h2>
+            ${config.tagline ? `<p class="tagline">${Scorely.escapeHtml(config.tagline)}</p>` : ""}
+          </div>
         </section>
 
         <section id="setup" class="card">
@@ -349,6 +377,12 @@
       renderRoundForm();
       renderStatus();
       wireEvents();
+
+      const winningPlayer = winner();
+      if (winningPlayer && winningPlayer.id !== lastWinnerId) {
+        Scorely.fireConfetti();
+      }
+      lastWinnerId = winningPlayer ? winningPlayer.id : null;
 
       prevSnapshot = snapshot();
     }

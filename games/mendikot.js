@@ -1,6 +1,8 @@
 Scorely.defineGame({
   id: "mendikot",
   name: "Mendikot",
+  icon: "👑",
+  accent: "linear-gradient(135deg, #ffcc4a 0%, #b46cff 100%)",
   tagline:
     "Two teams capture tens across hands. Each round, enter how many hands each team won. First team to the target wins.",
   settings: {

@@ -1,6 +1,8 @@
 Scorely.defineGame({
   id: "phase-10",
   name: "Phase 10",
+  icon: "🔟",
+  accent: "linear-gradient(135deg, #b46cff 0%, #6a82ff 100%)",
   tagline:
     "Complete 10 phases in order. First to finish phase 10 wins; lowest score breaks ties.",
   settings: {

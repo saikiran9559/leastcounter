@@ -42,9 +42,18 @@
 
   function renderHome() {
     document.title = "Scorely";
+    const count = Scorely.games.length;
+
+    const hero = document.createElement("section");
+    hero.className = "card home-hero";
+    hero.innerHTML = `
+      <h2>Pick your game</h2>
+      <p>${count} scoreboard${count === 1 ? "" : "s"} ready to play, more on the way.</p>
+    `;
+    appEl.appendChild(hero);
+
     const wrap = document.createElement("section");
     wrap.className = "card";
-    wrap.innerHTML = `<h2>Pick a game</h2>`;
 
     const grid = document.createElement("div");
     grid.className = "game-grid";
@@ -53,14 +62,17 @@
       const card = document.createElement("a");
       card.className = "game-card";
       card.href = `#/${g.id}`;
+      const accent = g.accent ? ` style="--game-accent: ${g.accent};"` : "";
+      const icon = g.icon ? `<div class="game-card-icon"${accent}>${g.icon}</div>` : "";
       card.innerHTML = `
+        ${icon}
         <h3>${Scorely.escapeHtml(g.name)}</h3>
         ${g.tagline ? `<p>${Scorely.escapeHtml(g.tagline)}</p>` : ""}
       `;
       grid.appendChild(card);
     }
 
-    if (Scorely.games.length === 0) {
+    if (count === 0) {
       grid.innerHTML = '<p class="empty">No games registered yet.</p>';
     }
 

@@ -13,6 +13,7 @@ The phased implementation plan lives at [`../status.yaml`](../status.yaml) at th
 | [`games.md`](games.md) | Catalog of all games (built + planned), grouped by family and complexity |
 | `games/<name>.md` | Per-game design notes — scoring rules, state shape, edge cases |
 | [`hosting.md`](hosting.md) | Hosting setup, why it's free, where the free path would end, migration targets |
+| [`conventions.md`](conventions.md) | Visual design (palette, type, motion), per-game identity, code conventions |
 | `decisions/NNNN-*.md` | Architectural decision records (ADRs) — one per decision, numbered |
 | `architecture.md` | High-level structure, modules, data flow (when warranted) |
 | `conventions.md` | Naming, storage keys, animation policy, browser-support targets |
