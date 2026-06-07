@@ -216,6 +216,7 @@
         frames.push(current);
       }
       current.throws.push(pins);
+      Scorely.playTap();
       persist();
       render();
     }

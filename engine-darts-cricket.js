@@ -81,6 +81,7 @@
       const cur = Number(m[num]) || 0;
       if (cur >= 3) return;
       m[num] = cur + 1;
+      Scorely.playTap();
       persist();
       render();
     }

@@ -564,4 +564,24 @@
       navigator.serviceWorker.register("sw.js").catch(() => {});
     });
   }
+
+  function syncSoundToggle() {
+    const btn = document.getElementById("sound-toggle");
+    if (!btn) return;
+    const on = Scorely.isSoundEnabled();
+    btn.textContent = on ? "🔊" : "🔇";
+    btn.classList.toggle("sound-on", on);
+    btn.setAttribute("aria-label", on ? "Mute sound" : "Enable sound");
+    btn.title = on ? "Mute sound" : "Enable sound";
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("sound-toggle");
+    if (!btn) return;
+    syncSoundToggle();
+    btn.addEventListener("click", () => {
+      Scorely.toggleSound();
+      syncSoundToggle();
+    });
+  });
 })();

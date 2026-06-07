@@ -12,6 +12,76 @@
   const PLAYER_NAMES_KEY = "scorely:player-names:v1";
   const RECENT_KEY = "scorely:recent:v1";
   const FAVORITES_KEY = "scorely:favorites:v1";
+  const SOUND_KEY = "scorely:sound:v1";
+
+  let audioCtx = null;
+  function audioContext() {
+    if (audioCtx) return audioCtx;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    try { audioCtx = new AC(); } catch { audioCtx = null; }
+    return audioCtx;
+  }
+
+  Scorely.isSoundEnabled = function () {
+    try { return localStorage.getItem(SOUND_KEY) === "on"; } catch { return false; }
+  };
+
+  Scorely.toggleSound = function () {
+    const next = !Scorely.isSoundEnabled();
+    try { localStorage.setItem(SOUND_KEY, next ? "on" : "off"); } catch {}
+    if (next) {
+      // Resume context on first opt-in (browser autoplay policies require a user gesture)
+      const ctx = audioContext();
+      if (ctx && ctx.state === "suspended") ctx.resume().catch(() => {});
+      Scorely.playTap();
+    }
+    return next;
+  };
+
+  function envelopeBeep(frequency, duration, gainPeak) {
+    const ctx = audioContext();
+    if (!ctx) return;
+    if (ctx.state === "suspended") ctx.resume().catch(() => {});
+    const t = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = frequency;
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(gainPeak, t + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + duration + 0.02);
+  }
+
+  Scorely.playTap = function () {
+    if (!Scorely.isSoundEnabled()) return;
+    envelopeBeep(880, 0.08, 0.12);
+  };
+
+  Scorely.playFanfare = function () {
+    if (!Scorely.isSoundEnabled()) return;
+    const ctx = audioContext();
+    if (!ctx) return;
+    if (ctx.state === "suspended") ctx.resume().catch(() => {});
+    const notes = [523.25, 659.25, 783.99, 1046.5]; // C5 E5 G5 C6
+    let t = ctx.currentTime;
+    for (const f of notes) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.value = f;
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.18, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.3);
+      t += 0.11;
+    }
+  };
 
   Scorely.getFavorites = function () {
     try {
@@ -82,6 +152,7 @@
   };
 
   Scorely.fireConfetti = function () {
+    Scorely.playFanfare();
     if (typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const colors = ["#7c8eff", "#b46cff", "#ff5d83", "#ffcc4a", "#4ee7ff", "#4ade80"];
     const count = 90;
@@ -761,6 +832,7 @@
         }
         if (Object.keys(entries).length === 0) return;
         addRound(entries);
+        Scorely.playTap();
       });
     }
 

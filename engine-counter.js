@@ -121,6 +121,7 @@
       const next = (state.scores[playerId] || 0) + delta;
       if (next < 0) return;
       state.scores[playerId] = next;
+      Scorely.playTap();
       persist();
       updateScoresOnly();
     }

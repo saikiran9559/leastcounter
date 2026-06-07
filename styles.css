@@ -1770,9 +1770,43 @@ tfoot td {
   flex-shrink: 0;
 }
 
+/* Sound toggle (9.12) */
+
+#sound-toggle {
+  position: fixed;
+  top: calc(14px + env(safe-area-inset-top, 0));
+  right: calc(14px + env(safe-area-inset-right, 0));
+  z-index: 50;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(7, 9, 26, 0.75);
+  border: 1px solid var(--card-border);
+  color: var(--text);
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: transform 0.15s ease, border-color 0.18s ease, background 0.18s ease;
+}
+#sound-toggle:hover {
+  transform: scale(1.05);
+  border-color: var(--accent);
+  background: rgba(7, 9, 26, 0.9);
+  box-shadow: 0 6px 18px rgba(124, 142, 255, 0.3);
+}
+#sound-toggle.sound-on {
+  border-color: var(--accent);
+  background: linear-gradient(135deg, rgba(124, 142, 255, 0.25), rgba(180, 108, 255, 0.25));
+}
+
 /* Print stylesheet (9.9) — paper-friendly scoresheets */
 @media print {
   @page { margin: 12mm; size: auto; }
+  #sound-toggle { display: none !important; }
 
   *, *::before, *::after {
     animation: none !important;

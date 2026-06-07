@@ -130,6 +130,7 @@
       if (state.players.length < 2) return;
       const m = state.match;
       m.points[idx] = (m.points[idx] || 0) + 1;
+      Scorely.playTap();
       const gw = gameWonBy(m.points);
       if (gw >= 0) {
         m.games[gw]++;
