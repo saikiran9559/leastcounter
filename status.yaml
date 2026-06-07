@@ -422,8 +422,13 @@ phases:
           turns).
       - id: 7.7
         title: Darts Cricket
-        status: deferred
-        notes: Marks-per-number matrix (15–20 + bull) — different shape.
+        status: done
+        notes: >
+          Shipped via seventh sibling engine-darts-cricket.js (ADR 0014).
+          Tap-to-mark matrix (player rows × {15–20, Bull}); standard /-X-⊗
+          notation; right-click / long-press to remove. Winner = first to
+          close all 7. Points-mode (extra hits while opponents haven't
+          closed) deferred — v1 is the closing race only.
       - id: 7.8
         title: Snooker
         status: done

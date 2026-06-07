@@ -1230,6 +1230,75 @@ tfoot td {
   .bowling-frame-score { font-size: 0.85rem; }
 }
 
+/* Darts Cricket (engine-darts-cricket.js) */
+
+.darts-matrix {
+  display: grid;
+  gap: 6px;
+  overflow-x: auto;
+}
+
+.darts-header {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--muted);
+  padding: 6px 4px;
+}
+
+.darts-corner {
+  text-align: left;
+}
+
+.darts-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.98rem;
+  padding: 10px 8px;
+  align-self: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.darts-name-winner { color: var(--good); }
+
+.darts-cell {
+  background: rgba(7, 9, 26, 0.6);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 12px 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.3rem;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  box-shadow: none;
+}
+.darts-cell:hover:not(:disabled) {
+  background: rgba(124, 142, 255, 0.15);
+  border-color: var(--accent);
+  box-shadow: none;
+  transform: none;
+}
+.darts-cell:disabled { opacity: 0.45; cursor: not-allowed; }
+.darts-cell.darts-marked { color: var(--accent-3); }
+.darts-cell.darts-closed {
+  background: rgba(74, 222, 128, 0.16);
+  border-color: var(--good);
+  color: var(--good);
+}
+
+.darts-hint {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-align: center;
+}
+
 /* Confetti — instantiated by JS only on winner */
 .confetti-piece {
   position: fixed;

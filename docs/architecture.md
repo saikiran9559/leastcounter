@@ -16,6 +16,7 @@ engine-counter.js       Counter engine — big +/- buttons, first to target (Tab
 engine-ledger.js        Ledger engine — buy-ins, cash-out, net P&L (Poker, Teen Patti)
 engine-tennis.js        Tennis engine — nested points/games/sets/match with deuce logic (Tennis)
 engine-bowling.js       Bowling engine — 10 frames per player, strike/spare carry-over (Bowling)
+engine-darts-cricket.js Darts Cricket engine — closing-marks matrix (Darts Cricket)
 games/
   least-count.js        Game config (config object passed to Scorely.defineGame)
   uno.js                Game config

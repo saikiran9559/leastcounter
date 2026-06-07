@@ -36,3 +36,4 @@ Files marked "(when warranted)" don't exist until there's something worth saying
 - [`0011-tennis-engine.md`](decisions/0011-tennis-engine.md) — fifth sibling engine-tennis.js for nested points/games/sets/match scoring; scope limits (no tiebreak, no service indicator)
 - [`0012-formula-callbacks-for-bid-vs-made-games.md`](decisions/0012-formula-callbacks-for-bid-vs-made-games.md) — partially supersedes 0003: per-game `computeTotal` callback for formula games (Spades, future Euchre/Pitch/500/Bridge)
 - [`0013-bowling-engine.md`](decisions/0013-bowling-engine.md) — sixth sibling engine-bowling.js for 10-frame strike/spare carry-over scoring
+- [`0014-darts-cricket-engine.md`](decisions/0014-darts-cricket-engine.md) — seventh sibling engine-darts-cricket.js for the closing-marks matrix shape
