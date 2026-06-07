@@ -97,6 +97,11 @@ What a game declares to the engine:
 
   progressNoun: 'Phase',        // optional — when scoring.progressKey is set, the status list
                                 // shows "<noun> N" per player. Default: "Stage".
+
+  playerNoun: 'Team',           // optional — relabel UI strings ("Players" → "Teams" etc.).
+                                // Default: "Player". Used by Mendikot/Court Piece so the
+                                // game's "players" are teams.
+  defaultPlayers: ['Team 1', 'Team 2'],  // optional — pre-fill these names on first load.
 }
 ```
 
@@ -123,6 +128,7 @@ The `direction × endCondition` matrix the engine supports today:
 | `low`  | `target-reach`   | (unusual) | First to reach target wins, lowest among reachers (rare) |
 | `high` | `threshold-elim` | (theoretical) | Players are eliminated for crossing — not currently used |
 | `low`  | `progress-reach` | Phase 10 | First player whose per-round "completed" count reaches target wins; lowest score breaks ties |
+| `low`  | `threshold-end`  | Hearts | As soon as any player crosses threshold, game ends; lowest cumulative across all players wins |
 
 ## Instance state shape
 

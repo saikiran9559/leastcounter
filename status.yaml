@@ -22,8 +22,13 @@ updated: 2026-06-07
 live_url: https://saikiran9559.github.io/scorely/
 repo: saikiran9559/scorely
 
-current_phase: 3
-next_up: 3.1
+current_phase: 4
+next_up: 4.1
+notes: >
+  Phase 3 split into 3a (done — Hearts, Mendikot, Court Piece via small
+  engine additions) and 3b (deferred — Spades, 28/29/56, Euchre, Pitch,
+  Whist all need per-round score formulas; ADR 0005 explains). Moving on
+  to Phase 4 (category-grid games) in the meantime; 3b can pick up later.
 
 phases:
 
@@ -140,48 +145,54 @@ phases:
         status: done
 
   - phase: 3
-    title: Pattern 4 — team / partnership games
-    status: planned
+    title: Pattern 4 — team / partnership games (split into 3a done / 3b deferred)
+    status: partial
     deps: [1]
     summary: >
-      Add 2-teams-of-2 layout to the engine. Most games here use round-by-round
-      scoring with bid + result columns. Once team-aware, the engine covers
-      this whole family.
+      Phase 3a (done): light team support via playerNoun/defaultPlayers,
+      threshold-end endCondition for Hearts. Ships Hearts, Mendikot, Court
+      Piece. Phase 3b (deferred): partnership games (Spades, 28/29, Euchre,
+      Pitch, Whist) need per-round score formulas — a callback or a new
+      config primitive. See ADR 0005.
     tasks:
       - id: 3.1
-        title: Engine extension — team layout (2 teams of 2, bid + tricks columns)
-        status: planned
+        title: Engine — playerNoun + defaultPlayers + threshold-end (Phase 3a slice)
+        status: done
+        notes: Full team-layout (per-team player rosters) deferred to Phase 3b.
       - id: 3.2
         title: Spades  (bid + tricks + bag-overflow penalty)
-        status: planned
-        deps: [3.1]
+        status: deferred
+        notes: Needs per-round score formula (bid vs made; +10/trick if made, -10/trick if set; bag penalty at 10).
       - id: 3.3
         title: Hearts  (shoot-the-moon toggle, 4 players, no teams)
-        status: planned
+        status: done
+        notes: >
+          Shipped via threshold-end + low. Shoot-the-moon UX (one-click 26-to-others)
+          is a future polish — users currently enter 0/26 manually.
       - id: 3.4
         title: 28 / 29 / 56  (Indian trick-taking, bid + trump + result)
-        status: planned
-        deps: [3.1]
+        status: deferred
+        notes: Per-round score formula (bid value × made/set).
       - id: 3.5
         title: Court Piece / Rang / Hokm  (hands-won + kot bonus)
-        status: planned
-        deps: [3.1]
+        status: done
+        notes: Kot bonus tracked manually for now — the engine doesn't auto-double on a 7-0 sweep.
       - id: 3.6
         title: Mendikot  (tens + tricks)
-        status: planned
-        deps: [3.1]
+        status: done
+        notes: Modeled as 2-team target-reach on hands-won. Tens-captured detail not stored separately.
       - id: 3.7
         title: Euchre  (maker + tricks + march + loner)
-        status: planned
-        deps: [3.1]
+        status: deferred
+        notes: Per-round score formula (1 / 2 / 4 points depending on march/loner).
       - id: 3.8
         title: Pitch / Setback  (named-bonus scoring — high/low/jack/game)
-        status: planned
-        deps: [3.1]
+        status: deferred
+        notes: Named-bonus checkboxes + bid-based formula.
       - id: 3.9
         title: Whist (rubber)
-        status: planned
-        deps: [3.1]
+        status: deferred
+        notes: Nested counters (5 points = a game, 2 games = a rubber) — distinct from the flat-counter shape the engine supports today.
 
   - phase: 4
     title: Pattern 3 — fixed-category grid games

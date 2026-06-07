@@ -78,6 +78,16 @@
       saveState(config, state);
     }
 
+    if (state.players.length === 0 && Array.isArray(config.defaultPlayers)) {
+      state.players = config.defaultPlayers.map((name) => ({ id: uid(), name }));
+      persist();
+    }
+
+    function nounSingular() { return config.playerNoun || "Player"; }
+    function nounLower() { return nounSingular().toLowerCase(); }
+    function nounPlural() { return nounSingular() + "s"; }
+    function nounPluralLower() { return nounPlural().toLowerCase(); }
+
     function getEntry(round, playerId) {
       if (round.entries) return round.entries[playerId] || {};
       if (round.scores) {
@@ -159,6 +169,13 @@
         return pickByDirection(reached, (p) => totalFor(p.id));
       }
 
+      if (config.scoring.endCondition === "threshold-end") {
+        const threshold = state.settings[config.scoring.thresholdKey];
+        const anyReached = state.players.some((p) => totalFor(p.id) >= threshold);
+        if (!anyReached) return null;
+        return pickByDirection(state.players, (p) => totalFor(p.id));
+      }
+
       return null;
     }
 
@@ -204,7 +221,7 @@
 
     function removePlayer(id) {
       if (state.rounds.length > 0) {
-        if (!confirm("Rounds already exist. Remove this player and their scores?")) return;
+        if (!confirm(`Rounds already exist. Remove this ${nounLower()} and their scores?`)) return;
         state.rounds = state.rounds.map((r) => {
           if (r.entries) {
             const { [id]: _, ...rest } = r.entries;
@@ -236,12 +253,19 @@
     }
 
     function resetGame() {
-      if (!confirm("Reset everything — players and rounds?")) return;
+      if (!confirm(`Reset everything — ${nounPluralLower()} and rounds?`)) return;
       state.players = [];
       state.rounds = [];
       state.settings = defaultSettings(config);
+      seedDefaultPlayers();
       persist();
       render();
+    }
+
+    function seedDefaultPlayers() {
+      if (state.players.length === 0 && Array.isArray(config.defaultPlayers)) {
+        state.players = config.defaultPlayers.map((name) => ({ id: uid(), name }));
+      }
     }
 
     function updateSetting(key, rawValue) {
@@ -280,11 +304,11 @@
           <h2>Setup</h2>
           <div class="row" id="settings-row"></div>
           <div class="players">
-            <h3>Players</h3>
+            <h3>${Scorely.escapeHtml(nounPlural())}</h3>
             <ul id="player-list"></ul>
             <div class="row">
-              <input type="text" id="new-player-name" placeholder="Player name" maxlength="20" />
-              <button id="add-player">Add player</button>
+              <input type="text" id="new-player-name" placeholder="${Scorely.escapeHtml(nounSingular())} name" maxlength="20" />
+              <button id="add-player">Add ${Scorely.escapeHtml(nounLower())}</button>
             </div>
           </div>
         </section>
@@ -350,7 +374,7 @@
       const list = container.querySelector("#player-list");
       list.innerHTML = "";
       if (state.players.length === 0) {
-        list.innerHTML = '<li class="empty">No players yet — add at least two to begin.</li>';
+        list.innerHTML = `<li class="empty">No ${Scorely.escapeHtml(nounPluralLower())} yet — add at least two to begin.</li>`;
         return;
       }
       for (const p of state.players) {
@@ -362,7 +386,7 @@
         const btn = document.createElement("button");
         btn.className = "icon";
         btn.textContent = "×";
-        btn.title = "Remove player";
+        btn.title = `Remove ${nounLower()}`;
         btn.onclick = () => removePlayer(p.id);
         li.appendChild(btn);
         list.appendChild(li);
