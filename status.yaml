@@ -294,8 +294,13 @@ phases:
         notes: Modeled as a rack counter (first to N racks). Per-rack ball tracking not included.
       - id: 5.5
         title: Backgammon match play  (cube state, gammon/backgammon)
-        status: deferred
-        notes: Doubling cube + per-game multiplier (gammon 2x, backgammon 3x) need cube state and per-game value setting.
+        status: done
+        notes: >
+          Shipped as a rounds-engine config — target=7 points, race to
+          match length. Per-game value is variable (1 normal, 2 gammon,
+          3 backgammon, ×2/×4/×8 with cube doubles); user enters the
+          points won per game. The deferred 'cube state tracking' is a
+          play-aid (not match scoring) and remains out of scope.
       - id: 5.6
         title: Settlers of Catan  (VP counter + largest army & longest road badges)
         status: done
