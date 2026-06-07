@@ -22,17 +22,17 @@ updated: 2026-06-07
 live_url: https://saikiran9559.github.io/scorely/
 repo: saikiran9559/scorely
 
-current_phase: shipped
-next_up: maintenance
+current_phase: 9
+next_up: 9.1
 notes: >
-  All 50 candidate games from docs/games.md have been addressed.
-  49 are shipped; Werewolf (8.5) is explicit out-of-scope as a
-  state-tracker rather than a scoreboard.
-  Across 8 phases, 7 sibling engines (rounds/grid/counter/ledger/
-  tennis/bowling/darts-cricket), 15 ADRs documenting every
-  architectural call. From here, "open work" is per-game polish
-  (Bridge contract calc, Mahjong variant tables, Tennis tiebreak,
-  Bowling PDF, etc.) — ship when a real user asks.
+  Phases 0–8: all 50 candidate games addressed. 49 shipped; Werewolf
+  (8.5) is explicit out-of-scope. 7 sibling engines, 15 ADRs.
+  Phase 9 is the next intentional batch: discovery + UX polish to
+  handle the 49-game grid (search, filters, recent, favorites,
+  autocomplete, PWA, etc.). Beyond Phase 9, "open work" is per-game
+  scope follow-ups documented in individual ADRs (Tennis tiebreak,
+  Bowling PDF, Bridge contract calc, Mahjong variant tables, etc.) —
+  pick up when a real user asks.
 
 phases:
 
@@ -521,6 +521,147 @@ phases:
           rank sum, direction low, no endCondition (manual game-end).
           Lower sum = consistently higher finishes.
 
+  - phase: 9
+    title: Discovery + UX polish (the 49-game grid is too long to scroll)
+    status: planned
+    deps: []
+    summary: >
+      With 49 games shipped, the home grid is now a discovery problem. This
+      phase makes the existing games easier to find, faster to launch, and
+      stickier to use. No new games — pure UX. Tasks 9.1–9.4 are the
+      "recommended first bundle" (~4h total); the rest are individually
+      valuable but not co-dependent.
+    bundles:
+      first-bundle: [9.1, 9.2, 9.3, 9.4]
+    tasks:
+      - id: 9.1
+        title: Search box on the home grid
+        status: planned
+        effort: ~30 min
+        notes: >
+          <input type="search"> above the grid; live-filters as user types.
+          Match name + tagline case-insensitively. Show "showing X / 49"
+          counter. Persist last query to localStorage so a refresh keeps it.
+
+      - id: 9.2
+        title: Category chips + per-game categories
+        status: planned
+        effort: ~2 h
+        notes: >
+          Add `categories: ['card', 'sport', 'dice', 'tile', 'board', 'pub']`
+          (multi-tag) to each of the 49 game configs (~1 h tagging). Render
+          a toggle-chip row above the grid; tap to include, tap-active to
+          clear (~1 h UI). Multi-select supported; empty = show all.
+
+      - id: 9.3
+        title: Recent games row
+        status: planned
+        effort: ~30 min
+        notes: >
+          Stamp `lastOpenedAt` on each game's localStorage write. Home grid
+          shows top 3–5 most-recently-opened in a "Recent" section above
+          the main grid (or chips area). Surfaces the 2-3 games people
+          actually replay vs. the full list.
+
+      - id: 9.4
+        title: Player name autocomplete across games
+        status: planned
+        effort: ~1 h
+        notes: >
+          Maintain a global player-name dictionary keyed by username
+          (scorely:player-names:v1). When user types in the "Add player"
+          input on any game, surface a <datalist> of previously-used
+          names. Helps the recurring "Snehith / Sai / Rony" group avoid
+          re-typing in every game.
+
+      - id: 9.5
+        title: Favorites — star a game, pin to top
+        status: planned
+        effort: ~45 min
+        notes: >
+          Star icon per home card; tap to favorite. Favorites pinned to a
+          row above the grid (alongside Recent). Persists in
+          scorely:favorites:v1.
+
+      - id: 9.6
+        title: Rules popover per game
+        status: planned
+        effort: ~2 h
+        notes: >
+          Each game config gains an optional `rules: '<markdown or HTML>'`
+          field with a 5-line "how to play" summary. Home card gets a
+          subtle "?" icon; click opens a modal/sheet with the rules.
+          Helps new players land on a game without already knowing it.
+
+      - id: 9.7
+        title: PWA — installable + offline
+        status: planned
+        effort: ~2 h
+        notes: >
+          Add manifest.json (name, icons, theme color, display: standalone)
+          + a minimal service worker that caches the shell. Opens as a real
+          app on iOS/Android home screens; works on the court / at the
+          lane when wifi is sketchy.
+
+      - id: 9.8
+        title: Game discovery — "you played X, try Y"
+        status: planned
+        effort: ~1 h
+        notes: >
+          On the game page or status card, surface 2–3 related games
+          ("Hearts → also try: Whist, Pinochle, Bridge"). Relations
+          declared in each game config via `related: ['whist', 'pinochle']`.
+          Or derived from shared `categories` from 9.2.
+
+      - id: 9.9
+        title: Print stylesheet
+        status: planned
+        effort: ~1 h
+        notes: >
+          @media print rules that turn each game's scoreboard into a
+          paper-friendly scoresheet (light bg, removes animations and
+          buttons, keeps tables + totals + winner banner). Some games
+          (Cricket, Bowling) get printed for offline reference.
+
+      - id: 9.10
+        title: Game stats / hall of fame
+        status: planned
+        effort: ~3 h
+        notes: >
+          Cross-game stats page (#/stats) — across all your saved games,
+          who has the most wins, biggest comeback, longest streak, most
+          games played. Reads all scorely:*:v1 keys, aggregates by
+          player name (which only works if 9.4 normalizes names).
+
+      - id: 9.11
+        title: Tournament / game-night mode
+        status: planned
+        effort: ~4 h
+        notes: >
+          A "Game Night" view aggregates results across multiple games
+          played by the same group (e.g., play LC + UNO + Codenames in
+          one evening, see overall leaderboard). Probably a new shape
+          (`shape: 'tournament'`) that references other instances.
+
+      - id: 9.12
+        title: Sound effects (toggleable, opt-in)
+        status: planned
+        effort: ~1 h
+        notes: >
+          Subtle tap clicks + a winner fanfare. Strictly opt-in via a
+          settings toggle (some players love it, some mute it). Web
+          Audio with small base64-encoded clips to avoid CDN deps.
+
+      - id: 9.13
+        title: Custom game builder (stretch)
+        status: planned
+        effort: ~6 h
+        notes: >
+          Form-based UI that lets a user define their own game config
+          (name, icon, direction, target, roundInputs) without writing
+          code. Generated configs persist to localStorage and appear in
+          the home grid alongside built-ins. Big reward, biggest effort.
+
 # Estimated game counts per phase (excludes engine work):
 #   Phase 2:  8 games
 #   Phase 3:  8 games
@@ -529,4 +670,6 @@ phases:
 #   Phase 6:  4 games
 #   Phase 7: 10 games
 #   Phase 8:  7 games
-#   Total:  50 games + 1 already shipped
+#   Total:  50 games + 1 already shipped (49 of 50 actually built; Werewolf out-of-scope)
+#
+# Phase 9: 13 UX/discovery tasks — no new games, all polish on the 49-game grid.
