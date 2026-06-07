@@ -621,6 +621,69 @@ tfoot td {
   line-height: 1.5;
 }
 
+.browse-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.browse-count {
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.browse-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.game-search {
+  width: 100%;
+  font-size: 1rem;
+  padding: 12px 14px;
+}
+
+.category-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.category-chip {
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--card-border);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: none;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.category-chip:hover {
+  background: rgba(124, 142, 255, 0.10);
+  color: var(--text);
+  border-color: var(--accent);
+  box-shadow: none;
+  transform: none;
+}
+
+.category-chip.active {
+  background: var(--grad-primary);
+  color: white;
+  border-color: transparent;
+}
+
 .home-hero {
   text-align: center;
   padding: 8px 0 4px;

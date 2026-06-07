@@ -9,6 +9,52 @@
     return Scorely.games.find((g) => g.id === id) || null;
   };
 
+  const PLAYER_NAMES_KEY = "scorely:player-names:v1";
+  const RECENT_KEY = "scorely:recent:v1";
+
+  Scorely.getKnownPlayerNames = function () {
+    try {
+      const raw = localStorage.getItem(PLAYER_NAMES_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  };
+
+  Scorely.recordPlayerName = function (name) {
+    const trimmed = String(name || "").trim();
+    if (!trimmed) return;
+    try {
+      const existing = Scorely.getKnownPlayerNames();
+      const lower = trimmed.toLowerCase();
+      if (existing.some((n) => n.toLowerCase() === lower)) return;
+      existing.unshift(trimmed);
+      const capped = existing.slice(0, 100);
+      localStorage.setItem(PLAYER_NAMES_KEY, JSON.stringify(capped));
+      Scorely.refreshPlayerDatalist?.();
+    } catch {}
+  };
+
+  Scorely.touchGame = function (gameId) {
+    try {
+      const raw = localStorage.getItem(RECENT_KEY);
+      const map = raw ? JSON.parse(raw) : {};
+      map[gameId] = Date.now();
+      localStorage.setItem(RECENT_KEY, JSON.stringify(map));
+    } catch {}
+  };
+
+  Scorely.getRecentGames = function (limit) {
+    try {
+      const raw = localStorage.getItem(RECENT_KEY);
+      const map = raw ? JSON.parse(raw) : {};
+      const ids = Object.keys(map).sort((a, b) => map[b] - map[a]);
+      return limit ? ids.slice(0, limit) : ids;
+    } catch {
+      return [];
+    }
+  };
+
   Scorely.fireConfetti = function () {
     if (typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const colors = ["#7c8eff", "#b46cff", "#ff5d83", "#ffcc4a", "#4ee7ff", "#4ade80"];
@@ -257,6 +303,7 @@
         return;
       }
       state.players.push({ id: uid(), name: trimmed });
+      Scorely.recordPlayerName(trimmed);
       persist();
       render();
     }
@@ -356,7 +403,7 @@
             <h3>${Scorely.escapeHtml(nounPlural())}</h3>
             <ul id="player-list"></ul>
             <div class="row">
-              <input type="text" id="new-player-name" placeholder="${Scorely.escapeHtml(nounSingular())} name" maxlength="20" />
+              <input type="text" id="new-player-name" placeholder="${Scorely.escapeHtml(nounSingular())} name" maxlength="20" list="player-names" />
               <button id="add-player">Add ${Scorely.escapeHtml(nounLower())}</button>
             </div>
           </div>

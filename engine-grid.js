@@ -124,6 +124,7 @@
       const id = uid();
       state.players.push({ id, name: trimmed });
       state.scores[id] = {};
+      Scorely.recordPlayerName(trimmed);
       persist();
       render();
     }
@@ -231,7 +232,7 @@
             <h3>${Scorely.escapeHtml(nounPlural())}</h3>
             <ul id="player-list"></ul>
             <div class="row">
-              <input type="text" id="new-player-name" placeholder="${Scorely.escapeHtml(nounSingular())} name" maxlength="20" />
+              <input type="text" id="new-player-name" placeholder="${Scorely.escapeHtml(nounSingular())} name" maxlength="20" list="player-names" />
               <button id="add-player">Add ${Scorely.escapeHtml(nounLower())}</button>
             </div>
           </div>

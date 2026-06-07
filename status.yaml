@@ -23,16 +23,13 @@ live_url: https://saikiran9559.github.io/scorely/
 repo: saikiran9559/scorely
 
 current_phase: 9
-next_up: 9.1
+next_up: 9.5
 notes: >
   Phases 0–8: all 50 candidate games addressed. 49 shipped; Werewolf
   (8.5) is explicit out-of-scope. 7 sibling engines, 15 ADRs.
-  Phase 9 is the next intentional batch: discovery + UX polish to
-  handle the 49-game grid (search, filters, recent, favorites,
-  autocomplete, PWA, etc.). Beyond Phase 9, "open work" is per-game
-  scope follow-ups documented in individual ADRs (Tennis tiebreak,
-  Bowling PDF, Bridge contract calc, Mahjong variant tables, etc.) —
-  pick up when a real user asks.
+  Phase 9 in progress: 9.1–9.4 (the first-bundle) shipped — search,
+  category chips, Recent row, cross-game player-name autocomplete.
+  Next: 9.5 favorites (star + pin), then the rest of Phase 9.
 
 phases:
 
@@ -536,43 +533,41 @@ phases:
     tasks:
       - id: 9.1
         title: Search box on the home grid
-        status: planned
-        effort: ~30 min
+        status: done
         notes: >
-          <input type="search"> above the grid; live-filters as user types.
-          Match name + tagline case-insensitively. Show "showing X / 49"
-          counter. Persist last query to localStorage so a refresh keeps it.
+          Shipped — live-filter search input above the All-games grid in
+          app.js. Matches name + tagline + categories case-insensitively.
+          Shows "X of N" counter. Query persists to
+          scorely:home-search:v1.
 
       - id: 9.2
         title: Category chips + per-game categories
-        status: planned
-        effort: ~2 h
+        status: done
         notes: >
-          Add `categories: ['card', 'sport', 'dice', 'tile', 'board', 'pub']`
-          (multi-tag) to each of the 49 game configs (~1 h tagging). Render
-          a toggle-chip row above the grid; tap to include, tap-active to
-          clear (~1 h UI). Multi-select supported; empty = show all.
+          Shipped — central GAME_CATEGORIES map in app.js (one source of
+          truth, no 49-file edits). 7 chips: Cards, Dice, Tile, Sports,
+          Board, Party, Partner. Multi-select; "All" chip resets.
+          Persists active set to scorely:home-categories:v1.
 
       - id: 9.3
         title: Recent games row
-        status: planned
-        effort: ~30 min
+        status: done
         notes: >
-          Stamp `lastOpenedAt` on each game's localStorage write. Home grid
-          shows top 3–5 most-recently-opened in a "Recent" section above
-          the main grid (or chips area). Surfaces the 2-3 games people
-          actually replay vs. the full list.
+          Shipped — Scorely.touchGame(id) stamps lastOpenedAt in
+          scorely:recent:v1 on each game launch. Home renders the top
+          5 most-recent in a "Recent" section above the All games grid.
+          Filtered out if a recent id no longer exists in the registry.
 
       - id: 9.4
         title: Player name autocomplete across games
-        status: planned
-        effort: ~1 h
+        status: done
         notes: >
-          Maintain a global player-name dictionary keyed by username
-          (scorely:player-names:v1). When user types in the "Add player"
-          input on any game, surface a <datalist> of previously-used
-          names. Helps the recurring "Snehith / Sai / Rony" group avoid
-          re-typing in every game.
+          Shipped — Scorely.recordPlayerName(name) maintains a global
+          dictionary at scorely:player-names:v1 (capped at 100 most-recent
+          unique names). Every engine's "Add player" input now has
+          list="player-names"; a global <datalist> in index.html is
+          repopulated on the home render (and could be refreshed mid-game
+          via Scorely.refreshPlayerDatalist).
 
       - id: 9.5
         title: Favorites — star a game, pin to top

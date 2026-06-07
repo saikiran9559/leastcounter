@@ -116,6 +116,7 @@
       const id = uid();
       state.players.push({ id, name: trimmed });
       ensurePlayerLedger(state, id);
+      Scorely.recordPlayerName(trimmed);
       persist();
       render();
     }
@@ -228,7 +229,7 @@
             <h3>Players</h3>
             <ul id="player-list"></ul>
             <div class="row">
-              <input type="text" id="new-player-name" placeholder="Player name" maxlength="20" />
+              <input type="text" id="new-player-name" placeholder="Player name" maxlength="20" list="player-names" />
               <button id="add-player">Add player</button>
             </div>
           </div>

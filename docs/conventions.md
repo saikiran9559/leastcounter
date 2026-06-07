@@ -78,7 +78,12 @@ Pick accents that pair well with the dark background — saturated mid-tones, tw
 - New games: one file in `games/<slug>.js`, register via `Scorely.defineGame({...})`, add a `<script src>` tag in `index.html` *before* `app.js`.
 
 ### Storage keys
-- Always `scorely:<game-id>:v1`. The `:v1` suffix is reserved for state-shape migration; bump to `:v2` and write a migrator if the shape changes incompatibly.
+- Per-game state: `scorely:<game-id>:v1`. The `:v1` suffix is reserved for state-shape migration; bump to `:v2` and write a migrator if the shape changes incompatibly.
+- Cross-cutting (Phase 9): `scorely:<purpose>:v1` where purpose is not a game id.
+  - `scorely:player-names:v1` — global player name dictionary (autocomplete across games)
+  - `scorely:recent:v1` — `{ gameId: lastOpenedAt }` map for the home "Recent" row
+  - `scorely:home-search:v1` — last search query on the home grid
+  - `scorely:home-categories:v1` — active category chip filter on the home grid
 - The single legacy fallback `leastcounter:v1` is grandfathered. Don't add more legacy fallbacks.
 
 ### Naming
