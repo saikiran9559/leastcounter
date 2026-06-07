@@ -215,8 +215,12 @@ phases:
           formatRoundCell shows "bid N · M" for the bidding team.
       - id: 3.9
         title: Whist (rubber)
-        status: deferred
-        notes: Nested counters (5 points = a game, 2 games = a rubber) — distinct from the flat-counter shape the engine supports today.
+        status: done
+        notes: >
+          Shipped as simplified counter game — target = N games (default 2)
+          to win a rubber. The inner 5-points-per-game (odd tricks)
+          tracking is left to the table; this tab counts games-won which
+          is what survives long-term anyway.
 
   - phase: 4
     title: Pattern 3 — fixed-category grid games (split into 4a done / 4b deferred)
@@ -417,8 +421,12 @@ phases:
         notes: Marks-per-number matrix (15–20 + bull) — different shape.
       - id: 7.8
         title: Snooker
-        status: deferred
-        notes: In-frame break calculator + frame-of-match counter (nested).
+        status: done
+        notes: >
+          Shipped match-level (first-to-N frames) as a counter game. The
+          in-frame break calculator (the iconic 4-147 running total during
+          a player's break) is a different artifact — not deferred to ship,
+          deferred as out-of-scope for a scoreboard.
       - id: 7.9
         title: Scrabble  (per-turn score, manual game-end)
         status: done
