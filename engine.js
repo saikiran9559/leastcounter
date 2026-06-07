@@ -601,7 +601,10 @@
         banner.classList.remove("hidden");
         const total = totalFor(w.id);
         const target = state.settings[config.scoring.thresholdKey];
-        if (config.scoring.displayMode === "remaining") {
+        const remaining = Number.isFinite(target) ? target - total : null;
+        if (typeof config.winnerBanner === "function") {
+          banner.textContent = config.winnerBanner({ winner: w, total, remaining, target, state, config });
+        } else if (config.scoring.displayMode === "remaining") {
           banner.textContent = `🏆 ${w.name} hit zero first from ${target}!`;
         } else if (config.scoring.endCondition === "target-reach") {
           banner.textContent = `🏆 ${w.name} reached ${target} first with ${total} points!`;

@@ -448,8 +448,12 @@ phases:
         notes: Day/night state, role reveals — not really scoring. Different category.
       - id: 8.6
         title: Liar's Dice
-        status: deferred
-        notes: Dice-remaining elimination tracker — not really scoring.
+        status: done
+        notes: >
+          Shipped on the rounds engine — threshold-elim + low + displayMode
+          'remaining'. Per round = one die-loss event; loser enters 1, others
+          leave blank. Threshold = startingDice. Display shows dice left,
+          not dice lost. Custom winnerBanner via new engine callback.
       - id: 8.7
         title: President / Asshole
         status: deferred
