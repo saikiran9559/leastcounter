@@ -183,8 +183,12 @@ phases:
           is a future polish — users currently enter 0/26 manually.
       - id: 3.4
         title: 28 / 29 / 56  (Indian trick-taking, bid + trump + result)
-        status: deferred
-        notes: Per-round score formula (bid value × made/set).
+        status: done
+        notes: >
+          Shipped as one game covering all three variants — user enters
+          bid + card points; engine compares teams' entries per round and
+          awards ±1 game-point per hand. Target 5 game-points by default.
+          Uses cross-team lookup in computeTotal (state.players is in scope).
       - id: 3.5
         title: Court Piece / Rang / Hokm  (hands-won + kot bonus)
         status: done
