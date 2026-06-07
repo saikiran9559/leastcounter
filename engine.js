@@ -424,6 +424,7 @@
         const input = document.createElement("input");
         input.type = "number";
         input.min = "0";
+        if (config.roundInputMax !== undefined) input.max = String(config.roundInputMax);
         input.placeholder = isOut(p.id) ? "—" : "0";
         input.dataset.playerId = p.id;
         input.disabled = isOut(p.id);
@@ -495,6 +496,10 @@
           const v = inp.value === "" ? 0 : parseInt(inp.value, 10);
           if (!Number.isFinite(v) || v < 0) {
             alert("Scores must be non-negative numbers.");
+            return;
+          }
+          if (config.roundInputMax !== undefined && v > config.roundInputMax) {
+            alert(`Scores must be at most ${config.roundInputMax}.`);
             return;
           }
           scores[inp.dataset.playerId] = v;

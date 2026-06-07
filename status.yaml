@@ -23,7 +23,7 @@ live_url: https://saikiran9559.github.io/scorely/
 repo: saikiran9559/scorely
 
 current_phase: 2
-next_up: 2.2
+next_up: 2.5
 
 phases:
 
@@ -110,25 +110,35 @@ phases:
         notes: Shipped in Phase 1 as engine-validation second game per ADR 0002.
       - id: 2.2
         title: Rummy — Indian 13-card  (pattern 1, threshold 101/201, per-round cap 80, drop = 20/40)
-        status: planned
+        status: done
+        notes: >
+          Shipped with engine extension `roundInputMax` for the 80-point cap.
+          Drop quick-fill buttons (20/40) deferred to a future polish pass.
       - id: 2.3
         title: Crazy Eights / Switch  (pattern 1)
-        status: planned
+        status: done
       - id: 2.4
         title: Tonk  (pattern 1, optional stake multiplier)
-        status: planned
+        status: done
+        notes: Stake multiplier deferred — out of scope for the pure-config engine.
       - id: 2.5
         title: Phase 10  (pattern 1 + per-player phase column)
         status: planned
+        notes: >
+          Needs engine extension for per-round multi-field input (score +
+          phase-completed checkbox), which changes the round data model
+          (r.scores -> r.entries with multiple keys per player). Designed
+          to land after the rest of Phase 2 to avoid blocking easier games
+          on the schema work.
       - id: 2.6
         title: Dominoes  (pattern 1)
-        status: planned
+        status: done
       - id: 2.7
         title: Rummikub  (pattern 1)
-        status: planned
+        status: done
       - id: 2.8
         title: Farkle / Ten Thousand  (pattern 2, target 10000)
-        status: planned
+        status: done
 
   - phase: 3
     title: Pattern 4 — team / partnership games

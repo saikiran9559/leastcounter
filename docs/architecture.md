@@ -85,6 +85,9 @@ What a game declares to the engine:
     addRound: 'Add round',      // section title
     total: 'Total',             // totals row label
   },
+
+  roundInputMax: 80,            // optional — caps the per-player per-round score input
+                                // (used by Rummy's 80-point full-count cap)
 }
 ```
 
