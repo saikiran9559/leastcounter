@@ -1,0 +1,26 @@
+{
+  "name": "Scorely",
+  "short_name": "Scorely",
+  "description": "Scoreboard for 49 tabletop and sport games — Least Count to Bridge, Tennis to Bowling.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07091a",
+  "theme_color": "#7c8eff",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["games", "utilities"]
+}

@@ -71,6 +71,18 @@ Pick accents that pair well with the dark background — saturated mid-tones, tw
 - Don't move spacing tokens out of CSS variables; consolidate first if you need a new scale.
 - Don't reach for animation libraries (GSAP, Motion One). CSS keyframes + the snapshot-diff trigger pattern is sufficient and keeps us build-step-free per [ADR 0001](decisions/0001-vanilla-no-build-step.md).
 
+## PWA (since Phase 9.7)
+
+Scorely is an installable PWA on iOS/Android/desktop.
+
+- `manifest.json` — name, brand theme color (`#7c8eff`), `display: standalone`, SVG icon (`icon.svg`).
+- `sw.js` — service worker using stale-while-revalidate. Caches every same-origin GET on first visit so subsequent loads work offline (court / lane wifi). Cache version `scorely-v1`; bump in the file when you want clients to drop their old caches.
+- Registration: `app.js` calls `navigator.serviceWorker.register("sw.js")` on `load`. Wrapped in `if ('serviceWorker' in navigator)` so non-supporting browsers skip silently.
+- iOS meta tags in `<head>`: `apple-touch-icon`, `apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style: black-translucent` so the status bar matches the dark theme.
+- `viewport-fit=cover` + `env(safe-area-inset-*)` padding so notched devices render correctly.
+
+If you ship a breaking shell change, bump `CACHE_VERSION` in `sw.js` to force clients to update.
+
 ## Code conventions
 
 ### Files

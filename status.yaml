@@ -23,13 +23,13 @@ live_url: https://saikiran9559.github.io/scorely/
 repo: saikiran9559/scorely
 
 current_phase: 9
-next_up: 9.7
+next_up: 9.8
 notes: >
   Phases 0–8: all 50 candidate games addressed. 49 shipped; Werewolf
   (8.5) is explicit out-of-scope. 7 sibling engines, 15 ADRs.
-  Phase 9 in progress: 9.1–9.6 shipped (search, chips, Recent,
-  autocomplete, favorites, rules popover). Next: 9.7 PWA installable,
-  then 9.8–9.13.
+  Phase 9 in progress: 9.1–9.7 shipped (search, chips, Recent,
+  autocomplete, favorites, rules popover, PWA). Next: 9.8 game
+  discovery, then 9.9–9.13.
 
 phases:
 
@@ -591,13 +591,14 @@ phases:
 
       - id: 9.7
         title: PWA — installable + offline
-        status: planned
-        effort: ~2 h
+        status: done
         notes: >
-          Add manifest.json (name, icons, theme color, display: standalone)
-          + a minimal service worker that caches the shell. Opens as a real
-          app on iOS/Android home screens; works on the court / at the
-          lane when wifi is sketchy.
+          Shipped. manifest.json + icon.svg (brand-gradient 'S') for
+          installability. sw.js uses stale-while-revalidate — caches
+          every same-origin GET on first visit so the app works offline
+          afterward. iOS meta tags + viewport-fit safe-area padding so
+          notched devices render correctly. CACHE_VERSION = 'scorely-v1';
+          bump to force clients to drop their caches.
 
       - id: 9.8
         title: Game discovery — "you played X, try Y"
