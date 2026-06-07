@@ -222,13 +222,18 @@
         <div class="browse-count" id="browse-count"></div>
       </div>
       <div class="browse-controls">
-        <input
-          type="search"
-          id="game-search"
-          class="game-search"
-          placeholder="Search by name or tagline…"
-          value="${Scorely.escapeHtml(searchQuery)}"
-        />
+        <div class="game-search-wrap">
+          <span class="game-search-icon" aria-hidden="true">🔍</span>
+          <input
+            type="search"
+            id="game-search"
+            class="game-search"
+            placeholder="Search games (name, tagline, or category)…"
+            value="${Scorely.escapeHtml(searchQuery)}"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
         <div class="category-chips" id="category-chips"></div>
       </div>
       <div class="game-grid" id="browse-grid"></div>
