@@ -370,8 +370,13 @@ phases:
         notes: Many itemized bonuses (red threes, clean/dirty canastas, going-out, hand penalty) — grid card per hand.
       - id: 7.4
         title: 500
-        status: deferred
-        notes: Bid-value lookup table (6 spades = 40, 7 hearts = 160, misère = ...) — computed score.
+        status: done
+        notes: >
+          Shipped via computeTotal (ADR 0012). Bid value alone determines
+          tricks needed: floor((bid-40)/100) + 6 for normal bids; misère
+          (250) and open misère (500) treated as bid===tricks=0. Made →
+          +bid; set → −bid; non-bidder always +10×tricks. 2 teams,
+          target 500.
       - id: 7.5
         title: Belote / Coinche
         status: deferred
