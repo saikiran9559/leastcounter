@@ -15,6 +15,7 @@ engine-grid.js          Grid engine — players + fixed N category slots (Wingsp
 engine-counter.js       Counter engine — big +/- buttons, first to target (Table tennis, Catan, Pool, ...)
 engine-ledger.js        Ledger engine — buy-ins, cash-out, net P&L (Poker, Teen Patti)
 engine-tennis.js        Tennis engine — nested points/games/sets/match with deuce logic (Tennis)
+engine-bowling.js       Bowling engine — 10 frames per player, strike/spare carry-over (Bowling)
 games/
   least-count.js        Game config (config object passed to Scorely.defineGame)
   uno.js                Game config
@@ -22,7 +23,7 @@ games/
   ...                   One file per game, ~10–40 lines each
 ```
 
-Game configs declare their shape via `config.shape: 'rounds' | 'grid' | 'counter' | 'ledger' | 'tennis'` (default `'rounds'`). `app.js` dispatches via a `shape → factory` map — adding a new shape is one map entry plus an engine file. Five engines live in parallel — see ADRs [0006](decisions/0006-grid-engine.md), [0007](decisions/0007-counter-engine.md), [0008](decisions/0008-ledger-engine-and-dispatch.md), and [0011](decisions/0011-tennis-engine.md) for the rationale.
+Game configs declare their shape via `config.shape: 'rounds' | 'grid' | 'counter' | 'ledger' | 'tennis' | 'bowling'` (default `'rounds'`). `app.js` dispatches via a `shape → factory` map — adding a new shape is one map entry plus an engine file. Six engines live in parallel — see ADRs [0006](decisions/0006-grid-engine.md), [0007](decisions/0007-counter-engine.md), [0008](decisions/0008-ledger-engine-and-dispatch.md), [0011](decisions/0011-tennis-engine.md), and [0013](decisions/0013-bowling-engine.md) for the rationale.
 
 Load order (in `index.html`):
 

@@ -35,3 +35,4 @@ Files marked "(when warranted)" don't exist until there's something worth saying
 - [`0010-cherry-pick-b-phases-and-displaymode.md`](decisions/0010-cherry-pick-b-phases-and-displaymode.md) — break strict phase order to ship Yahtzee + Darts 501; add `scoring.displayMode: 'remaining'`; defer Phase 8 wholesale
 - [`0011-tennis-engine.md`](decisions/0011-tennis-engine.md) — fifth sibling engine-tennis.js for nested points/games/sets/match scoring; scope limits (no tiebreak, no service indicator)
 - [`0012-formula-callbacks-for-bid-vs-made-games.md`](decisions/0012-formula-callbacks-for-bid-vs-made-games.md) — partially supersedes 0003: per-game `computeTotal` callback for formula games (Spades, future Euchre/Pitch/500/Bridge)
+- [`0013-bowling-engine.md`](decisions/0013-bowling-engine.md) — sixth sibling engine-bowling.js for 10-frame strike/spare carry-over scoring

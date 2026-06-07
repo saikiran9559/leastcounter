@@ -1064,6 +1064,172 @@ tfoot td {
   .tennis-stat-points .tennis-stat-value { font-size: 2rem; }
 }
 
+/* Bowling (engine-bowling.js) */
+
+.bowling-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.bowling-player {
+  background: rgba(7, 9, 26, 0.55);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.bowling-player.done {
+  border-color: var(--good);
+  box-shadow: 0 0 0 1px var(--good), 0 12px 32px rgba(74, 222, 128, 0.18);
+}
+
+.bowling-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+.bowling-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.bowling-total {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.bowling-strip {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr) 1.3fr;
+  gap: 4px;
+  overflow-x: auto;
+}
+
+.bowling-frame {
+  background: rgba(28, 33, 80, 0.55);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 4px 4px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
+  transition: border-color 0.2s ease;
+}
+.bowling-frame.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(124, 142, 255, 0.2);
+}
+
+.bowling-frame-throws {
+  display: flex;
+  justify-content: flex-end;
+  gap: 2px;
+}
+.bowling-frame-last .bowling-frame-throws { gap: 3px; }
+
+.bowling-throw {
+  width: 18px;
+  height: 18px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  line-height: 18px;
+  background: rgba(7, 9, 26, 0.6);
+  border-radius: 4px;
+  color: var(--text);
+}
+.bowling-throw.empty { color: var(--muted); opacity: 0.4; }
+.bowling-throw.filled { color: var(--accent-3); }
+
+.bowling-frame-score {
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+  margin-top: 4px;
+  color: var(--text-dim);
+  min-height: 1.2em;
+}
+
+.bowling-pad {
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  gap: 4px;
+  margin-top: 4px;
+}
+.bowling-pin {
+  padding: 12px 0;
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: rgba(124, 142, 255, 0.16);
+  border: 1px solid rgba(124, 142, 255, 0.3);
+  color: var(--text);
+  border-radius: 8px;
+  box-shadow: none;
+}
+.bowling-pin:hover:not(:disabled) {
+  background: rgba(124, 142, 255, 0.3);
+  border-color: var(--accent);
+  box-shadow: none;
+}
+.bowling-pin:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+.bowling-pin-strike {
+  background: var(--grad-primary);
+  border-color: var(--accent);
+  color: white;
+  font-size: 1.1rem;
+}
+
+.bowling-undo {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--card-border);
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  border-radius: 999px;
+  align-self: flex-start;
+  box-shadow: none;
+  font-weight: 600;
+}
+.bowling-undo:hover {
+  color: var(--text);
+  border-color: var(--accent);
+  background: rgba(124, 142, 255, 0.08);
+  box-shadow: none;
+  transform: none;
+}
+
+.bowling-done {
+  text-align: center;
+  padding: 14px;
+  background: rgba(74, 222, 128, 0.12);
+  border-radius: 10px;
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--good);
+}
+
+@media (max-width: 600px) {
+  .bowling-pad { grid-template-columns: repeat(6, 1fr); }
+  .bowling-throw { width: 14px; height: 14px; font-size: 0.7rem; line-height: 14px; }
+  .bowling-frame-score { font-size: 0.85rem; }
+}
+
 /* Confetti — instantiated by JS only on winner */
 .confetti-piece {
   position: fixed;

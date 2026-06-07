@@ -240,8 +240,12 @@ phases:
           extension if/when prioritized.
       - id: 4.3
         title: Bowling  (10 frames + strike/spare carry-over logic)
-        status: deferred
-        notes: Strike/spare bonuses pull from adjacent cells; needs cell-interdependence beyond simple summing.
+        status: done
+        notes: >
+          Shipped via sixth sibling engine-bowling.js (ADR 0013). Faithful
+          X/-/slash notation, strike/spare carry-over (next 1-2 throws),
+          special 10th-frame rules. Big-button pin pad (0-10) with
+          impossible-throw disabling, undo last throw. No PDF export yet.
       - id: 4.4
         title: Golf  (18 holes — stroke / stableford / match play modes)
         status: deferred
