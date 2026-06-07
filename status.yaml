@@ -260,8 +260,14 @@ phases:
         notes: 18 holes auto-generated from settings.holes; configurable count.
       - id: 4.6
         title: Archery  (arrows per end, 10/9/8/X scoring)
-        status: deferred
-        notes: Multi-input per category (6 arrows × N ends) — nested grid shape.
+        status: done
+        notes: >
+          Shipped via rounds engine with 6 arrow inputs per round (one per
+          arrow in a standard end). The sum-all-numeric default (ADR 0009)
+          turns the 6 arrows into an end total naturally; end totals
+          accumulate to the archer total. The original "nested grid"
+          deferral turned out unnecessary — multi-field rounds already
+          covers it.
       - id: 4.7
         title: 7 Wonders end-game calculator  (military, treasury, wonders, civilian, commerce, guilds, science)
         status: done
