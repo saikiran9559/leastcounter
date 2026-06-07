@@ -23,13 +23,14 @@ live_url: https://saikiran9559.github.io/scorely/
 repo: saikiran9559/scorely
 
 current_phase: 9
-next_up: 9.11
+next_up: 9.12
 notes: >
-  Phases 0–8: all 50 candidate games addressed. 49 shipped; Werewolf
-  (8.5) is explicit out-of-scope. 7 sibling engines, 15 ADRs.
-  Phase 9 in progress: 9.1–9.10 shipped (search, chips, Recent,
+  Phases 0–8: all 50 candidate games addressed. 49 + Tournament (added
+  in 9.11) shipped; Werewolf (8.5) is explicit out-of-scope. 7 sibling
+  engines, 15 ADRs.
+  Phase 9 in progress: 9.1–9.11 shipped (search, chips, Recent,
   autocomplete, favorites, rules popover, PWA, related-games, print
-  stylesheet, stats). Next: 9.11 tournament / game-night mode.
+  stylesheet, stats, tournament mode). Next: 9.12 sound effects.
 
 phases:
 
@@ -642,13 +643,16 @@ phases:
 
       - id: 9.11
         title: Tournament / game-night mode
-        status: planned
-        effort: ~4 h
+        status: done
         notes: >
-          A "Game Night" view aggregates results across multiple games
-          played by the same group (e.g., play LC + UNO + Codenames in
-          one evening, see overall leaderboard). Probably a new shape
-          (`shape: 'tournament'`) that references other instances.
+          Shipped pragmatically as games/tournament.js — a rounds-engine
+          config with the same group of players across many "games"
+          (each round). Per round, enter each player's points (raw game
+          score, rank, F1 formula, etc.). Engine sums, highest wins.
+          Auto-pulling results from other Scorely game instances (the
+          aspirational version) is deferred — would need per-engine
+          winner detection (same blocker as 9.10 stats). Now lives on
+          the home grid as the 50th shipped game.
 
       - id: 9.12
         title: Sound effects (toggleable, opt-in)

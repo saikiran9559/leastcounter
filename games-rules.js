@@ -299,6 +299,13 @@
       "1+ players, configurable holes (default 18). Stroke play.",
       "Record strokes per hole. Lowest cumulative wins.",
     ],
+    tournament: [
+      "Meta-tracker for game-night leaderboards: multiple games, one running total.",
+      "Add the same group of players. Each round = one game your group played.",
+      "Per round, enter each player's points from that game — raw game score, finishing rank, or a formula (Formula 1: 25-18-15-12-10-8-6-4-2-1; Olympic: 3-2-1).",
+      "Engine sums per player; highest cumulative wins the night.",
+      "Auto-pulling results from other Scorely games isn't built in — type in the points yourself.",
+    ],
   };
 
   S.rulesFor = function (gameId) {

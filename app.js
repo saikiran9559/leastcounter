@@ -59,6 +59,7 @@
     cricket: ["sport"],
     bridge: ["card", "partnership"],
     mahjong: ["tile"],
+    tournament: ["party"],
   };
 
   const ALL_CATEGORIES = [
