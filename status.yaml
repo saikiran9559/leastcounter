@@ -23,13 +23,13 @@ live_url: https://saikiran9559.github.io/scorely/
 repo: saikiran9559/scorely
 
 current_phase: 9
-next_up: 9.9
+next_up: 9.10
 notes: >
   Phases 0–8: all 50 candidate games addressed. 49 shipped; Werewolf
   (8.5) is explicit out-of-scope. 7 sibling engines, 15 ADRs.
-  Phase 9 in progress: 9.1–9.8 shipped (search, chips, Recent,
-  autocomplete, favorites, rules popover, PWA, related-games).
-  Next: 9.9 print stylesheet.
+  Phase 9 in progress: 9.1–9.9 shipped (search, chips, Recent,
+  autocomplete, favorites, rules popover, PWA, related-games, print
+  stylesheet). Next: 9.10 game stats / hall of fame.
 
 phases:
 
@@ -614,13 +614,17 @@ phases:
 
       - id: 9.9
         title: Print stylesheet
-        status: planned
-        effort: ~1 h
+        status: done
         notes: >
-          @media print rules that turn each game's scoreboard into a
-          paper-friendly scoresheet (light bg, removes animations and
-          buttons, keeps tables + totals + winner banner). Some games
-          (Cricket, Bowling) get printed for offline reference.
+          Shipped. One @media print block at the end of styles.css.
+          White bg, black text, all animations/shadows/gradients stripped.
+          Hides chrome (back-nav, setup, round form, related card, footer,
+          interactive buttons + inputs). Keeps the scoreboard table,
+          totals, status list, winner banner, and per-engine displays
+          (bowling frames, darts cells, ledger chips, scorecards, tennis
+          match). Cards collapse to plain printable blocks with
+          page-break-inside: avoid. Cmd+P on any game page gives a
+          clean scoresheet.
 
       - id: 9.10
         title: Game stats / hall of fame

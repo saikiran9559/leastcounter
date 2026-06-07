@@ -1627,3 +1627,202 @@ tfoot td {
   z-index: 1000;
   animation: confetti-fall var(--cdur, 3.2s) cubic-bezier(0.4, 0.6, 0.6, 1) forwards;
 }
+
+/* Print stylesheet (9.9) — paper-friendly scoresheets */
+@media print {
+  @page { margin: 12mm; size: auto; }
+
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+    color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+
+  body {
+    background: #fff !important;
+    color: #111 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+  body::before { display: none !important; }
+
+  header { padding: 0 0 8px !important; }
+  header h1 a {
+    background: none !important;
+    -webkit-text-fill-color: #111 !important;
+    background-clip: initial !important;
+    color: #111 !important;
+  }
+  header h1, header .tagline {
+    color: #111 !important;
+    text-align: left !important;
+  }
+
+  /* Hide all interactive chrome */
+  #back-nav,
+  #setup,
+  #add-round,
+  .home-hero,
+  .home-footer,
+  .browse-head,
+  .browse-controls,
+  .related-card,
+  .modal-backdrop,
+  .game-card-actions,
+  .confetti-piece,
+  .darts-hint,
+  .bowling-pad,
+  .bowling-undo,
+  .counter-card .counter-plus,
+  .counter-card .counter-minus,
+  .tennis-point-btn,
+  #player-list .icon,
+  button,
+  .ledger-add-buyin,
+  .ledger-section .row,
+  .buyin-chip button {
+    display: none !important;
+  }
+
+  /* Cards become plain printable blocks */
+  .card,
+  .scorecard,
+  .tennis-side,
+  .counter-card,
+  .ledger-card,
+  .bowling-player {
+    background: #fff !important;
+    color: #111 !important;
+    border: 1px solid #333 !important;
+    padding: 10px 12px !important;
+    margin: 0 0 10px 0 !important;
+    page-break-inside: avoid;
+  }
+
+  .card h2, .card h3 {
+    color: #111 !important;
+    text-align: left !important;
+  }
+
+  /* Tables */
+  table { color: #111 !important; }
+  thead th { color: #111 !important; }
+  th, td { border-color: #888 !important; color: #111 !important; }
+  tfoot td { color: #111 !important; }
+  tbody tr:nth-child(odd) { background: #f4f4f4 !important; }
+  .player-cell.leader { color: #0a6f2d !important; }
+  .player-cell.out { color: #888 !important; }
+
+  /* Player chips become inline tags */
+  #player-list li {
+    background: #fff !important;
+    color: #111 !important;
+    border: 1px solid #999 !important;
+  }
+
+  /* Status list */
+  #status-list li {
+    background: #fff !important;
+    color: #111 !important;
+    border: 1px solid #aaa !important;
+  }
+  #status-list li.leader {
+    border-color: #0a6f2d !important;
+    color: #0a6f2d !important;
+  }
+
+  /* Winner banner */
+  #winner-banner {
+    background: #fff !important;
+    color: #0a6f2d !important;
+    border: 2px solid #0a6f2d !important;
+    padding: 12px !important;
+  }
+  #winner-banner::before, #winner-banner::after { display: none !important; }
+
+  /* Game header icon — strip gradient to a quiet outline so print is ink-friendly */
+  .game-icon, .game-card-icon {
+    background: #fff !important;
+    color: #111 !important;
+    border: 1px solid #555 !important;
+    box-shadow: none !important;
+  }
+
+  /* Scorecards (grid engine) */
+  .scorecard-total { color: #111 !important; }
+  .scorecard-total.leader { color: #0a6f2d !important; }
+  .scorecard-row { color: #111 !important; }
+  .scorecard-row input {
+    background: transparent !important;
+    border: none !important;
+    color: #111 !important;
+    padding: 0 !important;
+  }
+
+  /* Tennis */
+  .tennis-stat-value { color: #111 !important; }
+  .tennis-stat-points .tennis-stat-value { color: #0a52a3 !important; }
+  .tennis-deuce {
+    background: #fff !important;
+    border: 1px solid #b48000 !important;
+    color: #b48000 !important;
+  }
+
+  /* Bowling */
+  .bowling-frame {
+    background: #fff !important;
+    border: 1px solid #888 !important;
+  }
+  .bowling-frame-score { color: #111 !important; }
+  .bowling-throw, .bowling-throw.filled, .bowling-throw.empty { color: #111 !important; opacity: 1 !important; }
+  .bowling-total { color: #111 !important; }
+
+  /* Darts cricket — keep marks visible */
+  .darts-cell {
+    background: #fff !important;
+    color: #111 !important;
+    border: 1px solid #888 !important;
+  }
+  .darts-cell.darts-closed {
+    background: #e8f4e8 !important;
+    border: 2px solid #0a6f2d !important;
+    color: #0a6f2d !important;
+  }
+  .darts-header { color: #111 !important; }
+
+  /* Ledger */
+  .ledger-net.net-positive { color: #0a6f2d !important; text-shadow: none !important; }
+  .ledger-net.net-negative { color: #a02020 !important; }
+  .ledger-net.net-zero { color: #555 !important; }
+  .buyin-chip {
+    background: #fff !important;
+    color: #111 !important;
+    border: 1px solid #888 !important;
+  }
+  .house-balance-row {
+    background: #fff !important;
+    border: 1px solid #999 !important;
+  }
+
+  /* Inputs — hide entirely on print (they're for entry, not display) */
+  input[type="text"], input[type="number"], input[type="search"] {
+    display: none !important;
+  }
+  label { display: none !important; }
+
+  /* But keep scorecard inputs visible for read-only score display */
+  .scorecard-row input { display: inline-block !important; }
+  .scorecard-row { display: grid !important; }
+  .scorecard-row span { color: #111 !important; }
+
+  /* And keep ledger cash-out visible (it shows the cash-out number) */
+  .ledger-cashout { display: grid !important; }
+  .ledger-cashout input { display: inline-block !important; background: transparent !important; border: none !important; color: #111 !important; padding: 0 !important; }
+  .ledger-cashout span { color: #555 !important; }
+
+  /* Section icons (★ 🕒 etc) — print as text */
+  .section-icon { color: #111 !important; }
+}
