@@ -1,8 +1,8 @@
 ---
-description: Deploy the Least Count scoreboard to GitHub Pages (saikiran9559/leastcounter)
+description: Deploy Scorely to GitHub Pages (saikiran9559/scorely)
 ---
 
-Deploy the current working tree to GitHub Pages. Live URL: https://saikiran9559.github.io/leastcounter/
+Deploy the current working tree to GitHub Pages. Live URL: https://saikiran9559.github.io/scorely/
 
 Follow these steps in order. Stop and report to the user if any step fails.
 
@@ -42,13 +42,13 @@ GitHub Pages rebuilds automatically on push to `main`. Builds take 30–90 secon
 ## 4. Wait for the rebuild and confirm
 
 ```bash
-gh api repos/saikiran9559/leastcounter/pages/builds/latest --jq '.status, .commit, .error.message'
+gh api repos/saikiran9559/scorely/pages/builds/latest --jq '.status, .commit, .error.message'
 ```
 
 Poll until `status` is `built`. Then verify the site responds:
 
 ```bash
-curl -sf -o /dev/null -w "%{http_code}\n" https://saikiran9559.github.io/leastcounter/
+curl -sf -o /dev/null -w "%{http_code}\n" https://saikiran9559.github.io/scorely/
 ```
 
 Expect `200`. Report the live URL to the user.

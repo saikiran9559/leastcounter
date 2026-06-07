@@ -1,6 +1,14 @@
-# Least Count Scoreboard
+# Scorely
 
-Static web app (HTML/CSS/JS, no build step) for tracking scores in the Least Count card game. Open `index.html` directly or visit the deployed site.
+A scoring website for tabletop and sport games. Currently ships **Least Count**; planned games are catalogued in [`docs/games.md`](docs/games.md).
+
+Repo was renamed from `leastcounter` → `scorely` on 2026-06-07 to reflect the broader multi-game scope. GitHub automatically redirects old URLs, but new links should use the new name.
+
+Static web app (HTML/CSS/JS, no build step). Open `index.html` directly or visit the deployed site.
+
+## Roadmap
+
+The long-term vision is a scoring website for many tabletop/sport games, not just Least Count. The full catalog of candidate games with scoring shape and complexity notes lives in [`docs/games.md`](docs/games.md).
 
 ## Rules
 
@@ -13,11 +21,11 @@ Project-specific rules that govern how to work on this codebase live in `.claude
 - `styles.css` — dark-theme UI
 - `app.js` — state, rendering, localStorage persistence, PDF export
 
-State is held in a single `state` object (`limit`, `players[]`, `rounds[]`) and persisted to `localStorage` under the key `leastcounter:v1`.
+State is held in a single `state` object (`limit`, `players[]`, `rounds[]`) and persisted to `localStorage` under the key `leastcounter:v1` (legacy name from before the repo rename — kept to preserve existing users' saved games). When we add more games, namespace future keys as `scorely:<game>:v1`.
 
 ## Deployment
 
-Live at **https://saikiran9559.github.io/leastcounter/** — GitHub Pages serving `main` branch root.
+Live at **https://saikiran9559.github.io/scorely/** — GitHub Pages serving `main` branch root.
 
 **To deploy, run the `/deploy` slash command in Claude Code.** It is defined at `.claude/commands/deploy.md` and automates the account switch + credential setup + push + build verification. The sections below document the same steps for reference.
 
@@ -32,7 +40,7 @@ gh auth setup-git --hostname github.com   # re-points git credential helper at a
 gh auth status                            # verify active = saikiran9559
 ```
 
-**Why both commands:** `gh auth switch` flips the active gh user, but the git credential helper continues to send the previously-cached token until `gh auth setup-git` is re-run. Skipping step 2 results in `Permission to saikiran9559/leastcounter.git denied to saikiran-jetti9` on push.
+**Why both commands:** `gh auth switch` flips the active gh user, but the git credential helper continues to send the previously-cached token until `gh auth setup-git` is re-run. Skipping step 2 results in `Permission to saikiran9559/scorely.git denied to saikiran-jetti9` on push.
 
 ### Git commit identity
 This repo is pinned locally to:
@@ -48,18 +56,18 @@ For reference, the steps that created the live site:
 # 1. Initialize repo and commit
 git init
 git add index.html styles.css app.js
-git commit -m "Initial Least Count scoreboard"
+git commit -m "Initial scoreboard"
 git branch -M main
 
 # 2. Ensure correct gh account is active
 gh auth switch -u saikiran9559
 
 # 3. Create public repo and push
-gh repo create leastcounter --public --source=. --remote=origin \
-  --description "Least Count card game scoreboard" --push
+gh repo create scorely --public --source=. --remote=origin \
+  --description "Scoring website for tabletop and sport games" --push
 
 # 4. Enable GitHub Pages from main branch root
-gh api -X POST repos/saikiran9559/leastcounter/pages \
+gh api -X POST repos/saikiran9559/scorely/pages \
   -f "source[branch]=main" -f "source[path]=/"
 ```
 
@@ -75,7 +83,7 @@ git commit -m "..."
 git push
 ```
 
-Build status: `gh api repos/saikiran9559/leastcounter/pages/builds/latest`
+Build status: `gh api repos/saikiran9559/scorely/pages/builds/latest`
 
 ## PDF export
 Uses jsPDF + jspdf-autotable from cdnjs. Requires internet on first load (browser caches afterward). If offline use is needed, vendor the libs locally and update the `<script>` src in `index.html`.

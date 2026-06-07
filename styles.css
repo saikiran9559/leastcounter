@@ -14,6 +14,52 @@
 
 * { box-sizing: border-box; }
 
+@keyframes fade-slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pop-in {
+  0%   { opacity: 0; transform: scale(0.7); }
+  60%  { transform: scale(1.06); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slide-in-row {
+  from { opacity: 0; transform: translateY(-8px); background: rgba(108, 140, 255, 0.18); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes total-flash {
+  0%   { transform: scale(1); color: var(--text); }
+  30%  { transform: scale(1.18); color: var(--accent); text-shadow: 0 0 10px rgba(108, 140, 255, 0.6); }
+  100% { transform: scale(1); }
+}
+
+@keyframes winner-pop {
+  0%   { opacity: 0; transform: scale(0.85); }
+  60%  { transform: scale(1.04); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes winner-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.0); }
+  50%      { box-shadow: 0 0 24px 2px rgba(74, 222, 128, 0.35); }
+}
+
+@keyframes shake-out {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -51,6 +97,19 @@ main {
   border: 1px solid var(--card-border);
   border-radius: 12px;
   padding: 20px;
+  animation: fade-slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+main > .card:nth-child(1) { animation-delay: 0.00s; }
+main > .card:nth-child(2) { animation-delay: 0.08s; }
+main > .card:nth-child(3) { animation-delay: 0.16s; }
+main > .card:nth-child(4) { animation-delay: 0.24s; }
+
+header h1 {
+  animation: fade-slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.tagline {
+  animation: fade-slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
 }
 
 .card h2 {
@@ -89,11 +148,13 @@ input[type="number"] {
   padding: 8px 10px;
   font-size: 0.95rem;
   min-width: 80px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 input:focus {
   outline: none;
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(108, 140, 255, 0.18);
 }
 
 button {
@@ -105,9 +166,19 @@ button {
   font-weight: 600;
   cursor: pointer;
   font-size: 0.95rem;
+  transition: background 0.18s ease, transform 0.12s ease, box-shadow 0.18s ease;
 }
 
-button:hover { background: var(--accent-hover); }
+button:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(108, 140, 255, 0.3);
+}
+
+button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(108, 140, 255, 0.2);
+}
 
 button.danger {
   background: transparent;
@@ -147,11 +218,26 @@ button.icon:hover { color: var(--danger); border-color: var(--danger); }
   display: flex;
   align-items: center;
   gap: 8px;
+  transition: opacity 0.4s ease, border-color 0.3s ease, transform 0.15s ease;
+}
+
+#player-list li:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+}
+
+#player-list li.fresh {
+  animation: pop-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 #player-list li.out {
   opacity: 0.5;
   text-decoration: line-through;
+}
+
+#player-list li.just-out {
+  animation: shake-out 0.5s ease;
+  border-color: var(--danger);
 }
 
 .table-wrap {
@@ -177,6 +263,18 @@ th:first-child, td:first-child {
 }
 
 tbody tr:nth-child(odd) { background: var(--row-alt); }
+
+tbody tr.fresh {
+  animation: slide-in-row 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.player-cell {
+  transition: color 0.3s ease;
+}
+
+.player-cell.flash {
+  animation: total-flash 0.6s ease;
+}
 
 tfoot th {
   border-top: 2px solid var(--card-border);
@@ -214,6 +312,8 @@ tfoot th {
   font-weight: 600;
   text-align: center;
   font-size: 1.1rem;
+  animation: winner-pop 0.6s cubic-bezier(0.16, 1, 0.3, 1) both,
+             winner-glow 2.4s ease-in-out 0.6s infinite;
 }
 
 .hidden { display: none; }

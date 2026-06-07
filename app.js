@@ -6,6 +6,28 @@ const state = load() || {
   rounds: [],
 };
 
+let prevSnapshot = {
+  playerIds: new Set(),
+  roundIds: new Set(),
+  totals: {},
+  outStatus: {},
+};
+
+function snapshot() {
+  const totals = {};
+  const outStatus = {};
+  for (const p of state.players) {
+    totals[p.id] = totalFor(p.id);
+    outStatus[p.id] = isOut(p.id);
+  }
+  return {
+    playerIds: new Set(state.players.map((p) => p.id)),
+    roundIds: new Set(state.rounds.map((r) => r.id)),
+    totals,
+    outStatus,
+  };
+}
+
 function load() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -116,6 +138,8 @@ function renderPlayers() {
   for (const p of state.players) {
     const li = document.createElement("li");
     if (isOut(p.id)) li.classList.add("out");
+    if (!prevSnapshot.playerIds.has(p.id)) li.classList.add("fresh");
+    if (isOut(p.id) && prevSnapshot.outStatus[p.id] === false) li.classList.add("just-out");
     li.innerHTML = `<span>${escapeHtml(p.name)}</span>`;
     const btn = document.createElement("button");
     btn.className = "icon";
@@ -150,6 +174,12 @@ function renderTable() {
     td.classList.add("player-cell");
     if (isOut(p.id)) td.classList.add("out");
     else if (p.id === leader && state.rounds.length > 0) td.classList.add("leader");
+    if (
+      prevSnapshot.totals[p.id] !== undefined &&
+      prevSnapshot.totals[p.id] !== total
+    ) {
+      td.classList.add("flash");
+    }
     totals.appendChild(td);
   }
 
@@ -174,6 +204,7 @@ function renderTable() {
 
   state.rounds.forEach((r, idx) => {
     const tr = document.createElement("tr");
+    if (!prevSnapshot.roundIds.has(r.id)) tr.classList.add("fresh");
     const th = document.createElement("th");
     th.textContent = `R${idx + 1}`;
     tr.appendChild(th);
@@ -261,6 +292,7 @@ function render() {
   renderTable();
   renderRoundForm();
   renderStatus();
+  prevSnapshot = snapshot();
 }
 
 function escapeHtml(s) {
