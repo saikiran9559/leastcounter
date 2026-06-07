@@ -36,10 +36,14 @@
     backNav.classList.remove("hidden");
     subtitle.textContent = config.tagline || "";
     document.title = `Scorely · ${config.name}`;
-    let instance;
-    if (config.shape === "grid") instance = Scorely.createGridInstance(config.id);
-    else if (config.shape === "counter") instance = Scorely.createCounterInstance(config.id);
-    else instance = Scorely.createInstance(config.id);
+    const factories = {
+      rounds: Scorely.createInstance,
+      grid: Scorely.createGridInstance,
+      counter: Scorely.createCounterInstance,
+      ledger: Scorely.createLedgerInstance,
+    };
+    const factory = factories[config.shape] || factories.rounds;
+    const instance = factory(config.id);
     instance.mount(appEl);
   }
 

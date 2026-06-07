@@ -13,6 +13,7 @@ app.js                  Bootstrap: hash router + home screen + shape dispatch
 engine.js               Rounds engine — players + dynamic rounds (Least Count, UNO, Hearts, ...)
 engine-grid.js          Grid engine — players + fixed N category slots (Wingspan, 7 Wonders, Disc Golf)
 engine-counter.js       Counter engine — big +/- buttons, first to target (Table tennis, Catan, Pool, ...)
+engine-ledger.js        Ledger engine — buy-ins, cash-out, net P&L (Poker, Teen Patti)
 games/
   least-count.js        Game config (config object passed to Scorely.defineGame)
   uno.js                Game config
@@ -20,7 +21,7 @@ games/
   ...                   One file per game, ~10–40 lines each
 ```
 
-Game configs declare their shape via `config.shape: 'rounds' | 'grid' | 'counter'` (default `'rounds'`). `app.js` dispatches to the matching `Scorely.create*Instance`. Three engines live in parallel — see [ADR 0006](decisions/0006-grid-engine.md) and [ADR 0007](decisions/0007-counter-engine.md) for the rationale. If a fourth shape lands (likely: session ledger for poker chips), generalize the dispatch then.
+Game configs declare their shape via `config.shape: 'rounds' | 'grid' | 'counter' | 'ledger'` (default `'rounds'`). `app.js` dispatches via a `shape → factory` map — adding a new shape is one map entry plus an engine file. Four engines live in parallel — see ADRs [0006](decisions/0006-grid-engine.md), [0007](decisions/0007-counter-engine.md), and [0008](decisions/0008-ledger-engine-and-dispatch.md) for the rationale.
 
 Load order (in `index.html`):
 
@@ -240,6 +241,36 @@ State shape:
 ```
 
 Increment via per-player `+1` / `−1` buttons. Score updates are partial (no full re-render on each tap) — keeps the UI responsive for fast scoring. Winner = top score ≥ target *and* (top − second) ≥ winBy.
+
+## Ledger engine (engine-ledger.js)
+
+Sibling for money-tracking session games (Poker, Teen Patti). No win condition; just running net P&L per player.
+
+GameConfig fields specific to ledger games:
+
+```js
+{
+  shape: 'ledger',
+  settings: {
+    defaultBuyIn: { label: 'Default buy-in', type: 'number', default: 20, min: 1 },
+  },
+  currency: '$',          // optional, default '$'. Used in money formatting.
+}
+```
+
+State shape:
+
+```js
+{
+  settings: { defaultBuyIn: 20 },
+  players: [{ id, name }],
+  ledger: {
+    [playerId]: { buyIns: [20, 20, 40], cashOut: 120 | null },
+  },
+}
+```
+
+Per-player UI: quick-add buy-in chip (default amount), custom buy-in via prompt, removable chips, single cash-out input. Net = `cashOut - sum(buyIns)`; positive net renders green, negative red. The standings card shows a *house balance* (total buy-ins − total cash-outs) — should be 0 once everyone has cashed out; non-zero is a sanity-check signal that someone forgot to enter a cash-out.
 
 ## What the engine does NOT do
 

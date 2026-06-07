@@ -22,17 +22,19 @@ updated: 2026-06-07
 live_url: https://saikiran9559.github.io/scorely/
 repo: saikiran9559/scorely
 
-current_phase: 6
-next_up: 6.1
+current_phase: 7
+next_up: 7.1
 notes: >
-  Phase 3 split into 3a (done) and 3b (deferred — score formulas).
-  Phase 4 split into 4a (done — engine-grid.js + Wingspan/7W/Disc Golf)
-  and 4b (deferred — Yahtzee/Bowling/Golf modes/Archery).
-  Phase 5 split into 5a (done — engine-counter.js + Table Tennis/
-  Pickleball/Badminton/Volleyball/Catan/Pool) and 5b (deferred —
-  Tennis is nested counter; Backgammon needs cube + gammon multipliers;
-  ADR 0007). Moving on to Phase 6 (session ledgers — poker, Teen Patti,
-  Codenames, Chess tournaments).
+  Phase 3 split into 3a done / 3b deferred (score formulas).
+  Phase 4 split into 4a done (grid engine + Wingspan/7W/Disc Golf) / 4b
+  deferred (Yahtzee/Bowling/Golf modes/Archery).
+  Phase 5 split into 5a done (counter engine + 6 games) / 5b deferred
+  (Tennis nested, Backgammon cube).
+  Phase 6 split into 6a done (ledger engine + Poker/Teen Patti; Codenames
+  via counter engine) / 6b deferred (Chess tournament — needs matrix +
+  tiebreakers). Four sibling engines now share the app via a
+  shape → factory map (ADR 0008). Moving on to Phase 7 (itemized /
+  lookup-table scoring — Cribbage, Bridge, Darts, etc.).
 
 phases:
 
@@ -276,32 +278,38 @@ phases:
         notes: Largest army & longest road tracked manually for now — players tap +2 (or use -1 from current holder) when they take the badge.
 
   - phase: 6
-    title: Pattern 5 — session ledgers
-    status: planned
+    title: Pattern 5 — session ledgers (split into 6a done / 6b deferred)
+    status: partial
     deps: [1]
     summary: >
-      No per-round scoring — track buy-ins, rebuys, cash-outs per session and
-      compute net profit/loss. One engine covers all chip-based games.
+      Phase 6a (done): new engine-ledger.js for cash-game money tracking
+      (Poker, Teen Patti). Codenames reclassified as a counter game (it's
+      team-wins, not financial). Dispatch generalized into a map.
+      Phase 6b (deferred): Chess tournament (matrix + tiebreakers — its
+      own shape).
     tasks:
       - id: 6.1
-        title: Generic session ledger engine
-        status: planned
+        title: Engine — engine-ledger.js (buy-ins, cash-out, net P&L)
+        status: done
       - id: 6.2
-        title: Poker session ledger (cash + tournament)
-        status: planned
-        deps: [6.1]
+        title: Poker session ledger (cash)
+        status: done
+        notes: Tournament-style (single buy-in, prize structure) not yet supported.
       - id: 6.3
         title: Teen Patti session ledger
-        status: planned
-        deps: [6.1]
+        status: done
+        notes: Same engine as Poker, ₹ currency, default ₹100 buy-in.
       - id: 6.4
-        title: Codenames session ledger (team wins)
-        status: planned
-        deps: [6.1]
+        title: Codenames team-wins counter
+        status: done
+        notes: >
+          Reclassified from "session ledger" to counter engine — Codenames is
+          team-wins, not financial. Ships as a counter config with playerNoun
+          "Team" and defaultPlayers ["Team Red", "Team Blue"]. See ADR 0008.
       - id: 6.5
         title: Chess tournament tracker  (Swiss / round-robin, tiebreaks)
-        status: planned
-        deps: [6.1]
+        status: deferred
+        notes: Matrix shape + Buchholz/Sonneborn-Berger tiebreakers — its own engine when prioritized.
 
   - phase: 7
     title: Itemized / lookup-table scoring

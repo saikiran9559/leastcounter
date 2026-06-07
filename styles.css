@@ -815,6 +815,162 @@ tfoot td {
   transform: none;
 }
 
+/* Ledger games (engine-ledger.js) */
+
+.ledger-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.ledger-card {
+  background: rgba(7, 9, 26, 0.55);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.ledger-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.ledger-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+}
+
+.ledger-net {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.7rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  transition: color 0.3s ease;
+}
+.ledger-net.net-positive {
+  color: var(--good);
+  text-shadow: 0 0 14px rgba(74, 222, 128, 0.4);
+}
+.ledger-net.net-negative {
+  color: var(--danger);
+}
+.ledger-net.net-zero {
+  color: var(--muted);
+}
+
+.ledger-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ledger-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  font-weight: 600;
+}
+.ledger-section-head strong {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: -0.01em;
+}
+
+.buyin-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 12px;
+}
+
+.buyin-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px 4px 10px;
+  background: rgba(124, 142, 255, 0.12);
+  border: 1px solid rgba(124, 142, 255, 0.35);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.buyin-chip button.icon {
+  padding: 0 6px;
+  font-size: 0.8rem;
+  border: 0;
+}
+
+.ledger-add-buyin {
+  background: var(--grad-primary);
+  font-size: 0.9rem;
+  padding: 8px 14px;
+}
+.ledger-add-buyin.secondary {
+  background: transparent;
+  border: 1px solid var(--card-border);
+  color: var(--text-dim);
+  box-shadow: none;
+}
+.ledger-add-buyin.secondary:hover {
+  border-color: var(--accent);
+  color: var(--text);
+  background: rgba(124, 142, 255, 0.08);
+  box-shadow: none;
+  transform: none;
+}
+
+.ledger-cashout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+}
+.ledger-cashout span {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.house-balance-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: rgba(7, 9, 26, 0.45);
+  border-radius: 10px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}
+.house-balance-row strong {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.2rem;
+  font-variant-numeric: tabular-nums;
+}
+.house-balance-row strong.net-zero { color: var(--good); }
+.house-balance-row strong.net-positive { color: var(--gold); }
+.house-balance-row strong.net-negative { color: var(--danger); }
+
 /* Confetti — instantiated by JS only on winner */
 .confetti-piece {
   position: fixed;
