@@ -155,6 +155,35 @@
     const factory = factories[config.shape] || factories.rounds;
     const instance = factory(config.id);
     instance.mount(appEl);
+
+    const relatedSection = buildRelatedSection(config);
+    if (relatedSection) appEl.appendChild(relatedSection);
+  }
+
+  function buildRelatedSection(config) {
+    const myCats = new Set(categoriesFor(config));
+    if (myCats.size === 0) return null;
+    const scored = Scorely.games
+      .filter((g) => g.id !== config.id)
+      .map((g) => {
+        const cats = categoriesFor(g);
+        const overlap = cats.filter((c) => myCats.has(c)).length;
+        return { game: g, overlap };
+      })
+      .filter(({ overlap }) => overlap > 0)
+      .sort((a, b) => b.overlap - a.overlap)
+      .slice(0, 3)
+      .map(({ game }) => game);
+    if (scored.length === 0) return null;
+
+    const card = document.createElement("section");
+    card.className = "card related-card";
+    card.innerHTML = `<h2>If you like ${Scorely.escapeHtml(config.name)}, try…</h2>`;
+    const grid = document.createElement("div");
+    grid.className = "game-grid";
+    for (const g of scored) grid.appendChild(buildGameCard(g));
+    card.appendChild(grid);
+    return card;
   }
 
   function matchesFilters(game) {

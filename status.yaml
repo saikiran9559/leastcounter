@@ -23,13 +23,13 @@ live_url: https://saikiran9559.github.io/scorely/
 repo: saikiran9559/scorely
 
 current_phase: 9
-next_up: 9.8
+next_up: 9.9
 notes: >
   Phases 0–8: all 50 candidate games addressed. 49 shipped; Werewolf
   (8.5) is explicit out-of-scope. 7 sibling engines, 15 ADRs.
-  Phase 9 in progress: 9.1–9.7 shipped (search, chips, Recent,
-  autocomplete, favorites, rules popover, PWA). Next: 9.8 game
-  discovery, then 9.9–9.13.
+  Phase 9 in progress: 9.1–9.8 shipped (search, chips, Recent,
+  autocomplete, favorites, rules popover, PWA, related-games).
+  Next: 9.9 print stylesheet.
 
 phases:
 
@@ -602,13 +602,15 @@ phases:
 
       - id: 9.8
         title: Game discovery — "you played X, try Y"
-        status: planned
-        effort: ~1 h
+        status: done
         notes: >
-          On the game page or status card, surface 2–3 related games
-          ("Hearts → also try: Whist, Pinochle, Bridge"). Relations
-          declared in each game config via `related: ['whist', 'pinochle']`.
-          Or derived from shared `categories` from 9.2.
+          Shipped. Auto-derived from shared GAME_CATEGORIES (no per-game
+          curation). After the engine mounts on a game page, app.js
+          appends an "If you like <Name>, try…" card with up to 3
+          related games ranked by category-overlap count. Stable order
+          via Scorely.games registration order. Manual override
+          (config.related: [...]) is a future polish if auto-derived
+          recommendations feel off.
 
       - id: 9.9
         title: Print stylesheet
