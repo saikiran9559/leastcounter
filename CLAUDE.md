@@ -8,7 +8,10 @@ Static web app (HTML/CSS/JS, no build step). Open `index.html` directly or visit
 
 ## Roadmap
 
-The long-term vision is a scoring website for many tabletop/sport games, not just Least Count. The full catalog of candidate games with scoring shape and complexity notes lives in [`docs/games.md`](docs/games.md).
+The long-term vision is a scoring website for many tabletop/sport games, not just Least Count.
+
+- **Active plan:** [`status.yaml`](status.yaml) — phased task list (current phase, next-up task, dependencies). Update this whenever a phase or task changes status.
+- **Full game catalog:** [`docs/games.md`](docs/games.md) — every candidate game with scoring shape, complexity tier, and the shared UI pattern it maps to.
 
 ## Rules
 

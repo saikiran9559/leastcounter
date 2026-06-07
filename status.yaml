@@ -1,0 +1,362 @@
+# Scorely — phased implementation plan
+#
+# Living document. Update whenever a task or phase changes status. Detailed
+# per-game scoring rules and complexity tiers live in docs/games.md; the
+# seven shared UI patterns are listed at the bottom of that file and are
+# the unit of phase-planning here.
+#
+# Status legend:
+#   done         — shipped to main
+#   in-progress  — actively being worked on; ideally only one task at a time
+#   planned      — queued, not started
+#   blocked      — waiting on a dep or a decision; record the blocker in `notes`
+#
+# How to update:
+#   - On starting a task, set its status to in-progress.
+#   - On shipping, set to done and bump `updated` at the top.
+#   - If a task triggers an architectural decision, write an ADR in
+#     docs/decisions/ — don't bury the rationale in this file.
+
+project: Scorely
+updated: 2026-06-07
+live_url: https://saikiran9559.github.io/scorely/
+repo: saikiran9559/scorely
+
+current_phase: 1
+next_up: 1.1
+
+phases:
+
+  - phase: 0
+    title: Foundation
+    status: done
+    summary: >
+      Ship Least Count end-to-end, set up deploy + docs + rules infrastructure,
+      and establish the multi-game vision.
+    tasks:
+      - id: 0.1
+        title: Build Least Count scoreboard
+        status: done
+      - id: 0.2
+        title: PDF export of results (jsPDF + autoTable)
+        status: done
+      - id: 0.3
+        title: Deploy to GitHub Pages under saikiran9559/scorely
+        status: done
+      - id: 0.4
+        title: UI animations (card load, chip pop-in, row slide-in, total flash, winner pop)
+        status: done
+      - id: 0.5
+        title: Catalog candidate games (docs/games.md)
+        status: done
+      - id: 0.6
+        title: Establish rules (.claude/rules/) — deploy-sync + documentation
+        status: done
+      - id: 0.7
+        title: Establish docs/ folder with README and first ADR
+        status: done
+      - id: 0.8
+        title: Rename repo from leastcounter to scorely
+        status: done
+
+  - phase: 1
+    title: Reusable scoring engine
+    status: planned
+    deps: []
+    summary: >
+      Extract the Least Count code into a generic engine that future games
+      consume as configs. Without this every new game becomes a copy-paste of
+      app.js and the codebase fragments. This phase is a prerequisite for
+      everything after — do it before adding the second game.
+    goals:
+      - Game-agnostic state shape (players, rounds, totals, win condition)
+      - Hash-based router so each game lives at /#/<game-slug>
+      - Game registry + home screen listing available games
+      - Least Count refactored as the proof-of-concept consumer
+      - Storage keys namespaced as scorely:<game>:v1
+    tasks:
+      - id: 1.1
+        title: Design engine API — what's game-agnostic vs game-specific
+        status: planned
+        notes: >
+          Likely { config: { win, scoreShape, render? }, state, actions }.
+          Write an ADR (docs/decisions/0002-engine-api.md) once the shape settles.
+      - id: 1.2
+        title: Hash router (#/least-count, #/uno, ...) with browser back/forward
+        status: planned
+        deps: [1.1]
+      - id: 1.3
+        title: Game registry + home screen listing available games
+        status: planned
+        deps: [1.2]
+      - id: 1.4
+        title: Refactor Least Count to consume the engine
+        status: planned
+        deps: [1.1]
+      - id: 1.5
+        title: Migrate localStorage to scorely:<game>:v1 with read-fallback from leastcounter:v1
+        status: planned
+        deps: [1.4]
+      - id: 1.6
+        title: Write docs/architecture.md + ADR for engine API
+        status: planned
+        deps: [1.4]
+
+  - phase: 2
+    title: Pattern 1+2 — cumulative scoring games (easy wins)
+    status: planned
+    deps: [1]
+    summary: >
+      Highest leverage phase: 8 games shipped as thin engine configs. Patterns
+      1 (lowest wins, threshold elimination) and 2 (highest wins, race to target)
+      are the engine's native shape, so each game here should be <1 day.
+    tasks:
+      - id: 2.1
+        title: UNO  (pattern 2, target 500)
+        status: planned
+      - id: 2.2
+        title: Rummy — Indian 13-card  (pattern 1, threshold 101/201, per-round cap 80, drop = 20/40)
+        status: planned
+      - id: 2.3
+        title: Crazy Eights / Switch  (pattern 1)
+        status: planned
+      - id: 2.4
+        title: Tonk  (pattern 1, optional stake multiplier)
+        status: planned
+      - id: 2.5
+        title: Phase 10  (pattern 1 + per-player phase column)
+        status: planned
+      - id: 2.6
+        title: Dominoes  (pattern 1)
+        status: planned
+      - id: 2.7
+        title: Rummikub  (pattern 1)
+        status: planned
+      - id: 2.8
+        title: Farkle / Ten Thousand  (pattern 2, target 10000)
+        status: planned
+
+  - phase: 3
+    title: Pattern 4 — team / partnership games
+    status: planned
+    deps: [1]
+    summary: >
+      Add 2-teams-of-2 layout to the engine. Most games here use round-by-round
+      scoring with bid + result columns. Once team-aware, the engine covers
+      this whole family.
+    tasks:
+      - id: 3.1
+        title: Engine extension — team layout (2 teams of 2, bid + tricks columns)
+        status: planned
+      - id: 3.2
+        title: Spades  (bid + tricks + bag-overflow penalty)
+        status: planned
+        deps: [3.1]
+      - id: 3.3
+        title: Hearts  (shoot-the-moon toggle, 4 players, no teams)
+        status: planned
+      - id: 3.4
+        title: 28 / 29 / 56  (Indian trick-taking, bid + trump + result)
+        status: planned
+        deps: [3.1]
+      - id: 3.5
+        title: Court Piece / Rang / Hokm  (hands-won + kot bonus)
+        status: planned
+        deps: [3.1]
+      - id: 3.6
+        title: Mendikot  (tens + tricks)
+        status: planned
+        deps: [3.1]
+      - id: 3.7
+        title: Euchre  (maker + tricks + march + loner)
+        status: planned
+        deps: [3.1]
+      - id: 3.8
+        title: Pitch / Setback  (named-bonus scoring — high/low/jack/game)
+        status: planned
+        deps: [3.1]
+      - id: 3.9
+        title: Whist (rubber)
+        status: planned
+        deps: [3.1]
+
+  - phase: 4
+    title: Pattern 3 — fixed-category grid games
+    status: planned
+    deps: [1]
+    summary: >
+      Yahtzee-style: each player fills N named categories with bonuses. Different
+      shape from round-based scoring but reusable across both card and sport games.
+    tasks:
+      - id: 4.1
+        title: Engine extension — category grid (named slots, fill-once, derived bonuses)
+        status: planned
+      - id: 4.2
+        title: Yahtzee
+        status: planned
+        deps: [4.1]
+      - id: 4.3
+        title: Bowling  (10 frames + strike/spare carry-over logic)
+        status: planned
+        deps: [4.1]
+      - id: 4.4
+        title: Golf  (18 holes — stroke / stableford / match play modes)
+        status: planned
+        deps: [4.1]
+      - id: 4.5
+        title: Disc golf  (Golf without the modes)
+        status: planned
+        deps: [4.4]
+      - id: 4.6
+        title: Archery  (arrows per end, 10/9/8/X scoring)
+        status: planned
+        deps: [4.1]
+      - id: 4.7
+        title: 7 Wonders end-game calculator  (military, treasury, wonders, civilian, commerce, guilds, science)
+        status: planned
+        deps: [4.1]
+      - id: 4.8
+        title: Wingspan end-game calculator  (birds, bonus cards, EORs, eggs, food, tucked)
+        status: planned
+        deps: [4.1]
+
+  - phase: 5
+    title: Pattern 6 — counter-only games
+    status: planned
+    deps: [1]
+    summary: >
+      No rounds, no categories — just big buttons that increment a score. Some
+      need serve indicators, nested counters (tennis), or match-of-N tracking.
+    tasks:
+      - id: 5.1
+        title: Engine extension — large-button counter mode with optional serve indicator
+        status: planned
+      - id: 5.2
+        title: Table tennis / Pickleball / Badminton / Volleyball  (one shared component, parameterized target)
+        status: planned
+        deps: [5.1]
+      - id: 5.3
+        title: Tennis  (nested — points → games → sets → match, deuce/advantage logic)
+        status: planned
+        deps: [5.1]
+      - id: 5.4
+        title: Pool / 8-ball  (rack counter + fouls)
+        status: planned
+        deps: [5.1]
+      - id: 5.5
+        title: Backgammon match play  (cube state, gammon/backgammon)
+        status: planned
+        deps: [5.1]
+      - id: 5.6
+        title: Settlers of Catan  (VP counter + largest army & longest road badges)
+        status: planned
+        deps: [5.1]
+
+  - phase: 6
+    title: Pattern 5 — session ledgers
+    status: planned
+    deps: [1]
+    summary: >
+      No per-round scoring — track buy-ins, rebuys, cash-outs per session and
+      compute net profit/loss. One engine covers all chip-based games.
+    tasks:
+      - id: 6.1
+        title: Generic session ledger engine
+        status: planned
+      - id: 6.2
+        title: Poker session ledger (cash + tournament)
+        status: planned
+        deps: [6.1]
+      - id: 6.3
+        title: Teen Patti session ledger
+        status: planned
+        deps: [6.1]
+      - id: 6.4
+        title: Codenames session ledger (team wins)
+        status: planned
+        deps: [6.1]
+      - id: 6.5
+        title: Chess tournament tracker  (Swiss / round-robin, tiebreaks)
+        status: planned
+        deps: [6.1]
+
+  - phase: 7
+    title: Itemized / lookup-table scoring
+    status: planned
+    deps: [3, 4]
+    summary: >
+      Games where scoring is a sum of named bonuses (cribbage show, scrabble
+      multipliers) or a bid-result lookup table (500, bridge). Each game needs
+      a custom score-entry form on top of the engine.
+    tasks:
+      - id: 7.1
+        title: Cribbage  (with show calculator — pairs, runs, 15s, flushes, nobs)
+        status: planned
+      - id: 7.2
+        title: Pinochle  (meld + tricks, itemized meld entry)
+        status: planned
+      - id: 7.3
+        title: Canasta  (melds, canastas, red threes, going-out bonus, hand penalty)
+        status: planned
+      - id: 7.4
+        title: 500  (bid-value lookup table, misère)
+        status: planned
+      - id: 7.5
+        title: Belote / Coinche
+        status: planned
+      - id: 7.6
+        title: Darts 501 / 301 / 701  (running countdown, double-out, checkout suggestions)
+        status: planned
+      - id: 7.7
+        title: Darts Cricket  (15–20 + bullseye matrix UI)
+        status: planned
+      - id: 7.8
+        title: Snooker  (frame break calculator + match frames)
+        status: planned
+      - id: 7.9
+        title: Scrabble  (multiplier helper, 50-pt bingo bonus)
+        status: planned
+      - id: 7.10
+        title: Cricket  (runs/wickets/overs — likely its own subdomain)
+        status: planned
+
+  - phase: 8
+    title: Heavy / specialty
+    status: planned
+    deps: [7]
+    summary: >
+      Games whose scoring is famously intricate or whose "scoring" is really
+      state tracking. Lowest value-per-effort — ship one at a time, only when
+      a real player has asked.
+    tasks:
+      - id: 8.1
+        title: Bridge (rubber)  (bid + contract + vulnerability + slam bonuses)
+        status: planned
+      - id: 8.2
+        title: Mahjong  (start with Chinese Classical; defer Japanese riichi)
+        status: planned
+      - id: 8.3
+        title: Skat  (multiplier ladder, failed contracts)
+        status: planned
+      - id: 8.4
+        title: Go  (territory + captures + komi calculator)
+        status: planned
+      - id: 8.5
+        title: Werewolf / Mafia  (day/night, alive/dead, role reveals — state tracker)
+        status: planned
+      - id: 8.6
+        title: Liar's Dice  (elimination tracker)
+        status: planned
+      - id: 8.7
+        title: President / Asshole  (finishing-order ladder)
+        status: planned
+
+# Estimated game counts per phase (excludes engine work):
+#   Phase 2:  8 games
+#   Phase 3:  8 games
+#   Phase 4:  7 games
+#   Phase 5:  6 games (4 sport counters under one shared component)
+#   Phase 6:  4 games
+#   Phase 7: 10 games
+#   Phase 8:  7 games
+#   Total:  50 games + 1 already shipped

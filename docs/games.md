@@ -4,6 +4,8 @@ A working catalog of games whose scoring would benefit from a dedicated web trac
 
 The repo currently ships **Least Count**. Other games are candidates for future scoring modules — likely sharing the core "players + rounds + totals + win condition" engine already in `app.js`.
 
+> Phased build plan with task IDs and current status: see [`../status.yaml`](../status.yaml). This file is the reference catalog; `status.yaml` is the execution plan.
+
 Legend:
 - ✅ Built
 - 🟢 Easy (same shape as Least Count)
