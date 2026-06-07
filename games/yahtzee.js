@@ -1,0 +1,26 @@
+Scorely.defineGame({
+  id: "yahtzee",
+  name: "Yahtzee",
+  icon: "🎲",
+  accent: "linear-gradient(135deg, #ff5d6c 0%, #ffcc4a 100%)",
+  tagline:
+    "Fill all 13 categories. Add 35 to bonuses if your upper section (1s–6s) hits 63+, and 100 for each extra Yahtzee.",
+  shape: "grid",
+  categories: [
+    { key: "ones",       label: "Ones (1×count)" },
+    { key: "twos",       label: "Twos (2×count)" },
+    { key: "threes",     label: "Threes (3×count)" },
+    { key: "fours",      label: "Fours (4×count)" },
+    { key: "fives",      label: "Fives (5×count)" },
+    { key: "sixes",      label: "Sixes (6×count)" },
+    { key: "threeKind",  label: "3 of a kind" },
+    { key: "fourKind",   label: "4 of a kind" },
+    { key: "fullHouse",  label: "Full house (25)" },
+    { key: "smStraight", label: "Sm. straight (30)" },
+    { key: "lgStraight", label: "Lg. straight (40)" },
+    { key: "yahtzee",    label: "Yahtzee (50)" },
+    { key: "chance",     label: "Chance" },
+    { key: "bonuses",    label: "Bonuses (35 upper + 100/extra Yahtzee)" },
+  ],
+  scoring: { direction: "high" },
+});

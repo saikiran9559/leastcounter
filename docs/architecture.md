@@ -127,6 +127,8 @@ The internal `getEntry(round, playerId)` helper normalizes to `{ score, ...extra
 
 **Multi-field totals.** Since [ADR 0009](decisions/0009-sum-all-numeric-round-fields.md), the engine sums *every* numeric field declared in `roundInputs` into the running total (not just `score`). Checkboxes and other non-numeric fields are ignored for scoring. This unlocks Cribbage (`peg + show`) and Pinochle (`meld + tricks`) as plain configs. Backwards-compatible — every prior game declared only `score`, so the sum equals the old per-cell value.
 
+**Display mode.** Since [ADR 0010](decisions/0010-cherry-pick-b-phases-and-displaymode.md), `scoring.displayMode: 'remaining'` (optional) flips the totals row and status list to show `target - total` instead of `total`. State and win logic are unchanged. Used by Darts 501 for the countdown look.
+
 The `direction × endCondition` matrix the engine supports today:
 
 | direction | endCondition | Example | Behavior |

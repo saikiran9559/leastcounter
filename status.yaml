@@ -22,17 +22,20 @@ updated: 2026-06-07
 live_url: https://saikiran9559.github.io/scorely/
 repo: saikiran9559/scorely
 
-current_phase: 8
-next_up: 8.1
+current_phase: cherry-pick
+next_up: by-demand
 notes: >
-  Phase 7 split into 7a done (Cribbage, Pinochle, Scrabble via small
-  engine tweak — sum all numeric fields, not just 'score'; ADR 0009)
-  and 7b deferred (Canasta, 500, Belote, Darts 501/Cricket, Snooker,
-  Cricket — each needs custom score formulas / shapes).
-  Across phases: 6 of 8 are partial (3a-6a done, 3b-6b deferred); 7a
-  done, 7b deferred. Moving on to Phase 8 (heavy / specialty) which
-  is already labeled as "lowest value-per-effort." Honest expectation:
-  ship 0-2 games from Phase 8 then declare the build-out a soft stop.
+  Strict phase order ended after Phase 7a. Per ADR 0010, future games
+  are picked by demand × engine-fit rather than phase number.
+  Cherry-picked this batch: Yahtzee (4b) and Darts 501 (7b) — both
+  doable with tiny engine adjustments (4b: none; 7b: scoring.displayMode
+  'remaining').
+  Phase 8 (heavy/specialty) deferred WHOLESALE — each task there needs
+  bespoke domain code (Bridge contract calc, Mahjong fan tables, etc.).
+  Per-game notes spell out what would be needed if any of them ever
+  gets prioritized.
+  Open work: Phase 3b/4b (rest)/5b/6b/7b (rest)/Phase 8. Take the next
+  pick by demand, not by phase number.
 
 phases:
 
@@ -215,8 +218,13 @@ phases:
         notes: Derived/bonus categories (Yahtzee upper bonus, Yahtzee jokers) deferred to 4b.
       - id: 4.2
         title: Yahtzee
-        status: deferred
-        notes: Upper-section bonus, Yahtzee bonus, per-category constraints — needs derived/computed category support.
+        status: done
+        notes: >
+          Shipped on the existing grid engine via cherry-pick (ADR 0010).
+          Upper-section bonus (+35) and Yahtzee bonuses (+100 each) are
+          tracked in a user-managed 'Bonuses' category — engine does not
+          auto-compute them. Engine-side auto-derivation is a future
+          extension if/when prioritized.
       - id: 4.3
         title: Bowling  (10 frames + strike/spare carry-over logic)
         status: deferred
@@ -343,8 +351,13 @@ phases:
         notes: Declarations + per-deal value formulas.
       - id: 7.6
         title: Darts 501 / 301 / 701
-        status: deferred
-        notes: Reverse-display countdown (remaining = 501 − scored) with bust rule and double-out finish.
+        status: done
+        notes: >
+          Shipped via cherry-pick (ADR 0010). Uses rounds engine plus the
+          new scoring.displayMode 'remaining' flag for the iconic
+          countdown display. Bust handling and double-out finish are
+          user-managed (engine doesn't enforce; users enter 0 for bust
+          turns).
       - id: 7.7
         title: Darts Cricket
         status: deferred
@@ -363,35 +376,42 @@ phases:
         notes: Its own subdomain — runs, wickets, overs, batting/bowling figures.
 
   - phase: 8
-    title: Heavy / specialty
-    status: planned
+    title: Heavy / specialty (wholesale deferred per ADR 0010)
+    status: deferred
     deps: [7]
     summary: >
       Games whose scoring is famously intricate or whose "scoring" is really
-      state tracking. Lowest value-per-effort — ship one at a time, only when
-      a real player has asked.
+      state tracking. Each needs bespoke domain code. Wholesale deferred per
+      ADR 0010 — pick from this list only when there's specific demand.
     tasks:
       - id: 8.1
         title: Bridge (rubber)  (bid + contract + vulnerability + slam bonuses)
-        status: planned
+        status: deferred
+        notes: Contract × vulnerability × slam bonuses + rubber tracking. Own engine.
       - id: 8.2
         title: Mahjong  (start with Chinese Classical; defer Japanese riichi)
-        status: planned
+        status: deferred
+        notes: Hand-value (fan/yaku) is its own subdomain; regional variants. Own engine.
       - id: 8.3
         title: Skat  (multiplier ladder, failed contracts)
-        status: planned
+        status: deferred
+        notes: Multiplier ladder (matadors × hand × schneider × schwarz × ouvert). Own engine.
       - id: 8.4
         title: Go  (territory + captures + komi calculator)
-        status: planned
+        status: deferred
+        notes: Territory counter + captures + komi. Own engine.
       - id: 8.5
-        title: Werewolf / Mafia  (day/night, alive/dead, role reveals — state tracker)
-        status: planned
+        title: Werewolf / Mafia
+        status: deferred
+        notes: Day/night state, role reveals — not really scoring. Different category.
       - id: 8.6
-        title: Liar's Dice  (elimination tracker)
-        status: planned
+        title: Liar's Dice
+        status: deferred
+        notes: Dice-remaining elimination tracker — not really scoring.
       - id: 8.7
-        title: President / Asshole  (finishing-order ladder)
-        status: planned
+        title: President / Asshole
+        status: deferred
+        notes: Finishing-order ladder over a session — closer to a game-show tracker.
 
 # Estimated game counts per phase (excludes engine work):
 #   Phase 2:  8 games

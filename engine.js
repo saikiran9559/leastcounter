@@ -147,6 +147,14 @@
       );
     }
 
+    function displayedTotal(rawTotal) {
+      if (config.scoring.displayMode === "remaining") {
+        const target = state.settings[config.scoring.thresholdKey];
+        if (Number.isFinite(target)) return target - rawTotal;
+      }
+      return rawTotal;
+    }
+
     function isOut(playerId) {
       if (config.scoring.endCondition !== "threshold-elim") return false;
       const threshold = state.settings[config.scoring.thresholdKey];
@@ -451,7 +459,7 @@
 
         const td = document.createElement("td");
         const total = totalFor(p.id);
-        td.textContent = total;
+        td.textContent = displayedTotal(total);
         td.classList.add("player-cell");
         if (isOut(p.id)) td.classList.add("out");
         else if (leaderP && p.id === leaderP.id && state.rounds.length > 0) td.classList.add("leader");
@@ -586,7 +594,9 @@
         banner.classList.remove("hidden");
         const total = totalFor(w.id);
         const target = state.settings[config.scoring.thresholdKey];
-        if (config.scoring.endCondition === "target-reach") {
+        if (config.scoring.displayMode === "remaining") {
+          banner.textContent = `🏆 ${w.name} hit zero first from ${target}!`;
+        } else if (config.scoring.endCondition === "target-reach") {
           banner.textContent = `🏆 ${w.name} reached ${target} first with ${total} points!`;
         } else if (config.scoring.endCondition === "progress-reach") {
           const noun = config.progressNoun || "Stage";
@@ -614,7 +624,7 @@
         const out = isOut(p.id);
         if (out) li.classList.add("out");
         else if (leaderP && p.id === leaderP.id && state.rounds.length > 0) li.classList.add("leader");
-        li.innerHTML = `<span>${Scorely.escapeHtml(p.name)}${out ? " — OUT" : ""}${Scorely.escapeHtml(progressSuffix(p.id))}</span><strong>${total}</strong>`;
+        li.innerHTML = `<span>${Scorely.escapeHtml(p.name)}${out ? " — OUT" : ""}${Scorely.escapeHtml(progressSuffix(p.id))}</span><strong>${displayedTotal(total)}</strong>`;
         list.appendChild(li);
       }
     }
