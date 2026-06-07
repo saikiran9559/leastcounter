@@ -15,6 +15,7 @@ The long-term vision is a scoring website for many tabletop/sport games, not jus
 Project-specific rules that govern how to work on this codebase live in `.claude/rules/`. Consult the relevant rule before making changes in its area; apply its check at the end of any task that triggers it.
 
 - [`deploy-sync`](.claude/rules/deploy-sync.md) — keep `.claude/commands/deploy.md` and the **Deployment** section below in lockstep. Apply at the end of any task that changes deployment.
+- [`documentation`](.claude/rules/documentation.md) — write docs in `docs/` for decisions, new games, conventions, and gotchas **without being asked**. The user will not remind you; this rule replaces those reminders. Apply at the end of any non-trivial task.
 
 ## Files
 - `index.html` — markup and CDN script tags (jsPDF + autoTable for export)

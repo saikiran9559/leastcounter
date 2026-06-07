@@ -1,0 +1,22 @@
+# docs/
+
+Documentation for Scorely — design decisions, architecture notes, game-specific rules, and conventions.
+
+Contributors (human or Claude) should treat this folder as the project's long-term memory. If you discover a decision, constraint, or gotcha that isn't captured here, **add it** in the same change as your code. See the [`documentation`](../.claude/rules/documentation.md) rule for the full policy.
+
+## Layout
+
+| Path | Purpose |
+|---|---|
+| [`games.md`](games.md) | Catalog of all games (built + planned), grouped by family and complexity |
+| `games/<name>.md` | Per-game design notes — scoring rules, state shape, edge cases |
+| `decisions/NNNN-*.md` | Architectural decision records (ADRs) — one per decision, numbered |
+| `architecture.md` | High-level structure, modules, data flow (when warranted) |
+| `conventions.md` | Naming, storage keys, animation policy, browser-support targets |
+| `gotchas.md` | Browser quirks, CDN behaviors, deploy traps |
+
+Files marked "(when warranted)" don't exist until there's something worth saying. Don't create empty placeholders.
+
+## Currently-recorded decisions
+
+- [`0001-vanilla-no-build-step.md`](decisions/0001-vanilla-no-build-step.md) — use plain HTML/CSS/JS, no bundler or framework
