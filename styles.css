@@ -738,6 +738,83 @@ tfoot td {
   font-weight: 600;
 }
 
+/* Counter games (engine-counter.js) */
+
+.counter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.counter-card {
+  background: linear-gradient(180deg, rgba(28, 33, 80, 0.6) 0%, rgba(22, 26, 58, 0.7) 100%);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 20px 18px 18px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease;
+}
+
+.counter-card.leading {
+  border-color: var(--good);
+  box-shadow: 0 0 0 1px var(--good), 0 12px 32px rgba(74, 222, 128, 0.18);
+}
+
+.counter-card .counter-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+}
+
+.counter-card .counter-score {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(3.6rem, 11vw, 5.6rem);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  margin: 6px 0 4px;
+  transition: color 0.3s ease;
+}
+
+.counter-card .counter-score.leader {
+  color: var(--good);
+  text-shadow: 0 0 22px rgba(74, 222, 128, 0.55);
+}
+
+.counter-card .counter-score.flash { animation: total-flash 0.5s ease; }
+
+.counter-card .counter-plus {
+  width: 100%;
+  padding: 18px;
+  font-size: 1.4rem;
+  font-weight: 800;
+  border-radius: 12px;
+  letter-spacing: 0.02em;
+}
+
+.counter-card .counter-minus {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--card-border);
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  border-radius: 999px;
+  align-self: center;
+  box-shadow: none;
+  font-weight: 600;
+}
+.counter-card .counter-minus:hover {
+  color: var(--text);
+  border-color: var(--accent);
+  background: rgba(124, 142, 255, 0.08);
+  box-shadow: none;
+  transform: none;
+}
+
 /* Confetti — instantiated by JS only on winner */
 .confetti-piece {
   position: fixed;

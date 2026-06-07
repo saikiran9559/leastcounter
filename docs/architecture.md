@@ -12,6 +12,7 @@ styles.css              All styling — shared across home and games
 app.js                  Bootstrap: hash router + home screen + shape dispatch
 engine.js               Rounds engine — players + dynamic rounds (Least Count, UNO, Hearts, ...)
 engine-grid.js          Grid engine — players + fixed N category slots (Wingspan, 7 Wonders, Disc Golf)
+engine-counter.js       Counter engine — big +/- buttons, first to target (Table tennis, Catan, Pool, ...)
 games/
   least-count.js        Game config (config object passed to Scorely.defineGame)
   uno.js                Game config
@@ -19,7 +20,7 @@ games/
   ...                   One file per game, ~10–40 lines each
 ```
 
-Game configs declare their shape via `config.shape: 'rounds' | 'grid'` (default `'rounds'`). `app.js` dispatches to `Scorely.createInstance` or `Scorely.createGridInstance` accordingly. Two engines live in parallel — see [ADR 0006](decisions/0006-grid-engine.md) for the rationale.
+Game configs declare their shape via `config.shape: 'rounds' | 'grid' | 'counter'` (default `'rounds'`). `app.js` dispatches to the matching `Scorely.create*Instance`. Three engines live in parallel — see [ADR 0006](decisions/0006-grid-engine.md) and [ADR 0007](decisions/0007-counter-engine.md) for the rationale. If a fourth shape lands (likely: session ledger for poker chips), generalize the dispatch then.
 
 Load order (in `index.html`):
 
@@ -209,6 +210,36 @@ State shape for grid games:
 ```
 
 Score editing is direct (no Save-round button) — each cell edits in place, totals update live without re-rendering inputs (preserves focus). A winner is declared only when every player has filled every category; before that, the status list shows a leader and per-player progress (e.g. `12 / 18 filled`).
+
+## Counter engine (engine-counter.js)
+
+Sibling to the rounds + grid engines for games whose entire UI is "big +1 buttons, first to target wins." Currently used by Table Tennis, Pickleball, Badminton, Volleyball, Catan, Pool.
+
+GameConfig fields specific to counter games:
+
+```js
+{
+  shape: 'counter',
+  settings: {
+    target: { label: 'Target score', type: 'number', default: 11, min: 1 },
+  },
+  winBy: 2,                  // optional, default 1. Margin needed to win (table tennis: 2).
+  scoring: { direction: 'high' },  // counter games are always highest-wins
+  scoreNoun: 'points',       // optional, default 'points'. Banner: "wins 5–3 racks" / "wins 11–9 points".
+}
+```
+
+State shape:
+
+```js
+{
+  settings: { target: 11 },
+  players: [{ id, name }],
+  scores: { [playerId]: number },
+}
+```
+
+Increment via per-player `+1` / `−1` buttons. Score updates are partial (no full re-render on each tap) — keeps the UI responsive for fast scoring. Winner = top score ≥ target *and* (top − second) ≥ winBy.
 
 ## What the engine does NOT do
 

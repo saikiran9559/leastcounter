@@ -36,9 +36,10 @@
     backNav.classList.remove("hidden");
     subtitle.textContent = config.tagline || "";
     document.title = `Scorely · ${config.name}`;
-    const instance = config.shape === "grid"
-      ? Scorely.createGridInstance(config.id)
-      : Scorely.createInstance(config.id);
+    let instance;
+    if (config.shape === "grid") instance = Scorely.createGridInstance(config.id);
+    else if (config.shape === "counter") instance = Scorely.createCounterInstance(config.id);
+    else instance = Scorely.createInstance(config.id);
     instance.mount(appEl);
   }
 

@@ -22,15 +22,17 @@ updated: 2026-06-07
 live_url: https://saikiran9559.github.io/scorely/
 repo: saikiran9559/scorely
 
-current_phase: 5
-next_up: 5.1
+current_phase: 6
+next_up: 6.1
 notes: >
-  Phase 3 split into 3a (done — Hearts, Mendikot, Court Piece) and 3b
-  (deferred — Spades, 28/29/56, Euchre, Pitch, Whist need score formulas;
-  ADR 0005). Phase 4 split into 4a (done — Wingspan, 7 Wonders, Disc Golf
-  via new engine-grid.js) and 4b (deferred — Yahtzee, Bowling, Golf modes,
-  Archery; ADR 0006 lists per-game gaps). Moving on to Phase 5 (counter-
-  only games — Tennis, Catan, etc.) in the meantime.
+  Phase 3 split into 3a (done) and 3b (deferred — score formulas).
+  Phase 4 split into 4a (done — engine-grid.js + Wingspan/7W/Disc Golf)
+  and 4b (deferred — Yahtzee/Bowling/Golf modes/Archery).
+  Phase 5 split into 5a (done — engine-counter.js + Table Tennis/
+  Pickleball/Badminton/Volleyball/Catan/Pool) and 5b (deferred —
+  Tennis is nested counter; Backgammon needs cube + gammon multipliers;
+  ADR 0007). Moving on to Phase 6 (session ledgers — poker, Teen Patti,
+  Codenames, Chess tournaments).
 
 phases:
 
@@ -240,36 +242,38 @@ phases:
         status: done
 
   - phase: 5
-    title: Pattern 6 — counter-only games
-    status: planned
+    title: Pattern 6 — counter-only games (split into 5a done / 5b deferred)
+    status: partial
     deps: [1]
     summary: >
-      No rounds, no categories — just big buttons that increment a score. Some
-      need serve indicators, nested counters (tennis), or match-of-N tracking.
+      Phase 5a (done): new engine-counter.js. Ships Table Tennis,
+      Pickleball, Badminton, Volleyball, Catan, Pool (six configs, one
+      engine). Phase 5b (deferred): Tennis (nested counter — points →
+      games → sets → match) and Backgammon (cube state + gammon
+      multipliers) need shape extensions. ADR 0007 explains.
     tasks:
       - id: 5.1
-        title: Engine extension — large-button counter mode with optional serve indicator
-        status: planned
+        title: Engine — engine-counter.js (big-button +/- counters, target + winBy)
+        status: done
       - id: 5.2
-        title: Table tennis / Pickleball / Badminton / Volleyball  (one shared component, parameterized target)
-        status: planned
-        deps: [5.1]
+        title: Table tennis / Pickleball / Badminton / Volleyball  (one shared engine, four configs)
+        status: done
       - id: 5.3
         title: Tennis  (nested — points → games → sets → match, deuce/advantage logic)
-        status: planned
-        deps: [5.1]
+        status: deferred
+        notes: Nested counters require a different shape; revisit when there's clearer demand.
       - id: 5.4
         title: Pool / 8-ball  (rack counter + fouls)
-        status: planned
-        deps: [5.1]
+        status: done
+        notes: Modeled as a rack counter (first to N racks). Per-rack ball tracking not included.
       - id: 5.5
         title: Backgammon match play  (cube state, gammon/backgammon)
-        status: planned
-        deps: [5.1]
+        status: deferred
+        notes: Doubling cube + per-game multiplier (gammon 2x, backgammon 3x) need cube state and per-game value setting.
       - id: 5.6
         title: Settlers of Catan  (VP counter + largest army & longest road badges)
-        status: planned
-        deps: [5.1]
+        status: done
+        notes: Largest army & longest road tracked manually for now — players tap +2 (or use -1 from current holder) when they take the badge.
 
   - phase: 6
     title: Pattern 5 — session ledgers
