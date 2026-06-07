@@ -3,10 +3,52 @@
 
   Scorely.games = [];
   Scorely.defineGame = function (config) {
+    if (Scorely.games.some((g) => g.id === config.id)) return false;
     Scorely.games.push(config);
+    return true;
   };
   Scorely.getGame = function (id) {
     return Scorely.games.find((g) => g.id === id) || null;
+  };
+  Scorely.removeGame = function (id) {
+    const idx = Scorely.games.findIndex((g) => g.id === id);
+    if (idx === -1) return false;
+    Scorely.games.splice(idx, 1);
+    return true;
+  };
+
+  const CUSTOM_GAMES_KEY = "scorely:custom-games:v1";
+
+  Scorely.getCustomGames = function () {
+    try {
+      const raw = localStorage.getItem(CUSTOM_GAMES_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  };
+
+  Scorely.saveCustomGame = function (config) {
+    try {
+      const existing = Scorely.getCustomGames().filter((c) => c.id !== config.id);
+      existing.push(config);
+      localStorage.setItem(CUSTOM_GAMES_KEY, JSON.stringify(existing));
+    } catch {}
+  };
+
+  Scorely.deleteCustomGame = function (id) {
+    try {
+      const filtered = Scorely.getCustomGames().filter((c) => c.id !== id);
+      localStorage.setItem(CUSTOM_GAMES_KEY, JSON.stringify(filtered));
+      Scorely.removeGame(id);
+      try { localStorage.removeItem(`scorely:${id}:v1`); } catch {}
+    } catch {}
+  };
+
+  Scorely.hydrateCustomGames = function () {
+    for (const config of Scorely.getCustomGames()) {
+      Scorely.defineGame(config);
+    }
   };
 
   const PLAYER_NAMES_KEY = "scorely:player-names:v1";

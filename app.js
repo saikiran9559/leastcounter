@@ -98,6 +98,12 @@
   let searchQuery = loadSearchQuery();
   let activeCategories = loadActiveCategories();
 
+  // Register any user-built games before the first render so they show up
+  // alongside the built-ins.
+  if (typeof Scorely.hydrateCustomGames === "function") {
+    Scorely.hydrateCustomGames();
+  }
+
   function refreshPlayerDatalist() {
     const list = document.getElementById("player-names");
     if (!list) return;
@@ -114,6 +120,7 @@
     const hash = window.location.hash.replace(/^#\/?/, "");
     if (!hash) return { name: "home" };
     if (hash === "stats") return { name: "stats" };
+    if (hash === "create-game") return { name: "create" };
     return { name: "game", gameId: hash };
   }
 
@@ -133,6 +140,14 @@
       subtitle.textContent = "Cross-game stats & hall of fame";
       document.title = "Scorely · Stats";
       renderStats();
+      return;
+    }
+
+    if (route.name === "create") {
+      backNav.classList.remove("hidden");
+      subtitle.textContent = "Design your own scoreboard";
+      document.title = "Scorely · Create";
+      renderCreateGame();
       return;
     }
 
@@ -364,6 +379,8 @@
     footer.className = "card home-footer";
     footer.innerHTML = `
       <p class="muted">
+        <a href="#/create-game">🎨 Create your own</a>
+        &nbsp;·&nbsp;
         <a href="#/stats">📊 Stats &amp; hall of fame</a>
         &nbsp;·&nbsp;
         <a href="https://github.com/saikiran9559/scorely/blob/main/status.yaml">Roadmap</a>
@@ -554,6 +571,157 @@
     }
     gamesCard.appendChild(gamesList);
     appEl.appendChild(gamesCard);
+  }
+
+  function slugify(name) {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 40) || "game";
+  }
+
+  function uniqueCustomId(base) {
+    let id = `${base}-custom`;
+    let i = 2;
+    while (Scorely.getGame(id)) id = `${base}-custom-${i++}`;
+    return id;
+  }
+
+  function renderCreateGame() {
+    const form = document.createElement("section");
+    form.className = "card";
+    form.innerHTML = `
+      <h2>🎨 Create your own game</h2>
+      <p class="muted" style="margin-top: -6px; margin-bottom: 18px;">
+        Build a rounds-based scoreboard from scratch — name it, pick a win condition, and it's on your home grid.
+      </p>
+      <form id="create-form" class="create-form">
+        <label class="create-label">
+          <span>Name</span>
+          <input type="text" name="name" required maxlength="40" placeholder="My Game Night" />
+        </label>
+        <div class="create-row">
+          <label class="create-label">
+            <span>Icon (emoji)</span>
+            <input type="text" name="icon" maxlength="4" placeholder="🎮" />
+          </label>
+          <label class="create-label create-label-grow">
+            <span>Tagline (optional)</span>
+            <input type="text" name="tagline" maxlength="200" placeholder="Per round, enter each player's points…" />
+          </label>
+        </div>
+
+        <div class="create-section">
+          <span class="create-section-label">Win condition</span>
+          <label class="create-radio">
+            <input type="radio" name="condition" value="target" checked />
+            <span><strong>Race to a target</strong> — highest cumulative wins (e.g. first to 500)</span>
+          </label>
+          <label class="create-radio">
+            <input type="radio" name="condition" value="elim" />
+            <span><strong>Out at threshold</strong> — lowest survives (e.g. Least Count)</span>
+          </label>
+          <label class="create-radio">
+            <input type="radio" name="condition" value="manual" />
+            <span><strong>No auto-winner</strong> — leader pulses, you decide when to stop</span>
+          </label>
+        </div>
+
+        <label class="create-label" id="create-target-wrap">
+          <span id="create-target-label">Target score</span>
+          <input type="number" name="target" min="1" value="100" />
+        </label>
+
+        <div class="create-actions">
+          <button type="submit">Create game</button>
+          <a href="#/" class="create-cancel">Cancel</a>
+        </div>
+      </form>
+    `;
+    appEl.appendChild(form);
+
+    const formEl = form.querySelector("#create-form");
+    const targetWrap = form.querySelector("#create-target-wrap");
+    const targetLabel = form.querySelector("#create-target-label");
+
+    formEl.addEventListener("change", () => {
+      const cond = formEl.condition.value;
+      targetWrap.style.display = cond === "manual" ? "none" : "";
+      targetLabel.textContent = cond === "elim" ? "Elimination threshold" : "Target score";
+    });
+
+    formEl.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = formEl.name.value.trim();
+      if (!name) return;
+      const icon = formEl.icon.value.trim() || "🎮";
+      const tagline = formEl.tagline.value.trim();
+      const condition = formEl.condition.value;
+      const target = parseInt(formEl.target.value, 10);
+
+      const baseSlug = slugify(name);
+      const id = uniqueCustomId(baseSlug);
+
+      const config = {
+        id,
+        name,
+        icon,
+        accent: "linear-gradient(135deg, #7c8eff 0%, #b46cff 100%)",
+        tagline,
+        custom: true,
+        labels: { round: "Round", addRound: "Add round", total: "Total" },
+      };
+
+      if (condition === "target") {
+        config.scoring = { direction: "high", endCondition: "target-reach", thresholdKey: "target" };
+        config.settings = { target: { label: "Target score", type: "number", default: target, min: 1 } };
+      } else if (condition === "elim") {
+        config.scoring = { direction: "low", endCondition: "threshold-elim", thresholdKey: "target" };
+        config.settings = { target: { label: "Elimination threshold", type: "number", default: target, min: 1 } };
+      } else {
+        config.scoring = { direction: "high" };
+      }
+
+      Scorely.defineGame(config);
+      Scorely.saveCustomGame(config);
+      window.location.hash = `#/${id}`;
+    });
+
+    // List of existing custom games with delete
+    const customs = Scorely.getCustomGames();
+    if (customs.length > 0) {
+      const manageCard = document.createElement("section");
+      manageCard.className = "card";
+      manageCard.innerHTML = `<h2>Your custom games</h2>`;
+      const list = document.createElement("ul");
+      list.className = "custom-list";
+      for (const c of customs) {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <span class="custom-icon">${c.icon || "🎮"}</span>
+          <div class="custom-info">
+            <a href="#/${c.id}" class="custom-name">${Scorely.escapeHtml(c.name)}</a>
+            ${c.tagline ? `<div class="custom-tagline">${Scorely.escapeHtml(c.tagline)}</div>` : ""}
+          </div>
+          <button class="custom-delete" data-delete="${c.id}" title="Delete">×</button>
+        `;
+        list.appendChild(li);
+      }
+      manageCard.appendChild(list);
+      appEl.appendChild(manageCard);
+
+      manageCard.querySelectorAll("[data-delete]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.delete;
+          const c = Scorely.getGame(id);
+          if (!confirm(`Delete "${c?.name || id}" and its saved games?`)) return;
+          Scorely.deleteCustomGame(id);
+          render();
+        });
+      });
+    }
   }
 
   window.addEventListener("hashchange", render);

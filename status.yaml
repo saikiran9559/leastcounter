@@ -22,15 +22,20 @@ updated: 2026-06-07
 live_url: https://saikiran9559.github.io/scorely/
 repo: saikiran9559/scorely
 
-current_phase: 9
-next_up: 9.13
+current_phase: done
+next_up: maintenance
 notes: >
-  Phases 0–8: all 50 candidate games addressed. 49 + Tournament shipped;
-  Werewolf (8.5) is explicit out-of-scope. 7 sibling engines, 15 ADRs.
-  Phase 9 in progress: 9.1–9.12 shipped (search, chips, Recent,
-  autocomplete, favorites, rules popover, PWA, related-games, print
-  stylesheet, stats, tournament mode, sound effects).
-  Last: 9.13 custom game builder.
+  Phases 0–9 all shipped. 49 built-in games + Tournament + custom games
+  via the in-app builder. Werewolf (8.5) is explicit out-of-scope as a
+  state-tracker. 7 sibling engines, 15 ADRs.
+  Phase 9 (Discovery + UX polish) closed out — all 13 tasks done:
+  search, category chips, Recent row, cross-game player-name
+  autocomplete, favorites, rules popover, PWA, game discovery, print
+  stylesheet, stats, tournament mode, sound effects, custom game
+  builder.
+  From here: per-game scope follow-ups documented in individual ADRs
+  (Tennis tiebreak, Bowling PDF, Bridge contract calc, Mahjong variant
+  tables, etc.). Pick up when a real user asks.
 
 phases:
 
@@ -669,13 +674,21 @@ phases:
 
       - id: 9.13
         title: Custom game builder (stretch)
-        status: planned
-        effort: ~6 h
+        status: done
         notes: >
-          Form-based UI that lets a user define their own game config
-          (name, icon, direction, target, roundInputs) without writing
-          code. Generated configs persist to localStorage and appear in
-          the home grid alongside built-ins. Big reward, biggest effort.
+          Shipped at #/create-game. Form fields: name, icon (emoji),
+          tagline, win condition (race-to-target / out-at-threshold /
+          no-auto-winner), target value. On submit: generates a
+          rounds-engine config, registers via Scorely.defineGame,
+          persists to scorely:custom-games:v1, navigates to the new
+          game. Custom games hydrate on app load (via
+          Scorely.hydrateCustomGames before first render) so they
+          survive refresh and appear in the home grid alongside
+          built-ins. The same page lists existing customs with delete
+          buttons (removes config + scorely:<id>:v1 saved state).
+          Multi-field rounds, computeTotal callbacks, engine-shape
+          selection are out of scope for v1 — power users can
+          hand-write a config file. Linked from home footer.
 
 # Estimated game counts per phase (excludes engine work):
 #   Phase 2:  8 games

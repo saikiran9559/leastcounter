@@ -97,6 +97,8 @@ If you ship a breaking shell change, bump `CACHE_VERSION` in `sw.js` to force cl
   - `scorely:home-search:v1` — last search query on the home grid
   - `scorely:home-categories:v1` — active category chip filter on the home grid
   - `scorely:favorites:v1` — array of starred game ids (pinned to the home "Favorites" section)
+  - `scorely:sound:v1` — `"on"` / `"off"` for the sound-effects toggle (default off; opt-in)
+  - `scorely:custom-games:v1` — array of user-defined game configs (rehydrated into Scorely.games on load)
 - The single legacy fallback `leastcounter:v1` is grandfathered. Don't add more legacy fallbacks.
 
 ### Naming
