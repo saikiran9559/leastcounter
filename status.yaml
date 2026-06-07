@@ -383,8 +383,14 @@ phases:
           target 500.
       - id: 7.5
         title: Belote / Coinche
-        status: deferred
-        notes: Declarations + per-deal value formulas.
+        status: done
+        notes: >
+          Shipped basic Belote via computeTotal. Per team per hand: declared
+          (checkbox), card points won, optional extras (for manual
+          declarations/belote bonus). Caller: made (>=82) → keep points + extras;
+          set → opponents get 162 + opponents' extras. Coinche (doubling)
+          and itemized declarations (belote-rebelote, sequences, carré)
+          not auto-computed — enter as 'extras' totals.
       - id: 7.6
         title: Darts 501 / 301 / 701
         status: done
