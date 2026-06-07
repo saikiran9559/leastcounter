@@ -78,9 +78,30 @@
       saveState(config, state);
     }
 
+    function getEntry(round, playerId) {
+      if (round.entries) return round.entries[playerId] || {};
+      if (round.scores) {
+        const score = round.scores[playerId];
+        return score === undefined ? {} : { score };
+      }
+      return {};
+    }
+
+    function roundInputs() {
+      if (config.roundInputs) return config.roundInputs;
+      return [{ key: "score", label: "Score", type: "number", min: 0, max: config.roundInputMax }];
+    }
+
+    function progressFor(playerId) {
+      if (!config.scoring.progressKey) return 0;
+      return state.rounds.reduce((count, r) => {
+        return count + (getEntry(r, playerId)[config.scoring.progressKey] ? 1 : 0);
+      }, 0);
+    }
+
     function totalFor(playerId) {
       return state.rounds.reduce(
-        (sum, r) => sum + (r.scores[playerId] || 0),
+        (sum, r) => sum + (getEntry(r, playerId).score || 0),
         0
       );
     }
@@ -127,6 +148,13 @@
       if (config.scoring.endCondition === "target-reach") {
         const target = state.settings[config.scoring.thresholdKey];
         const reached = state.players.filter((p) => totalFor(p.id) >= target);
+        if (reached.length === 0) return null;
+        return pickByDirection(reached, (p) => totalFor(p.id));
+      }
+
+      if (config.scoring.endCondition === "progress-reach") {
+        const target = state.settings[config.scoring.thresholdKey];
+        const reached = state.players.filter((p) => progressFor(p.id) >= target);
         if (reached.length === 0) return null;
         return pickByDirection(reached, (p) => totalFor(p.id));
       }
@@ -178,8 +206,15 @@
       if (state.rounds.length > 0) {
         if (!confirm("Rounds already exist. Remove this player and their scores?")) return;
         state.rounds = state.rounds.map((r) => {
-          const { [id]: _, ...rest } = r.scores;
-          return { ...r, scores: rest };
+          if (r.entries) {
+            const { [id]: _, ...rest } = r.entries;
+            return { ...r, entries: rest };
+          }
+          if (r.scores) {
+            const { [id]: _, ...rest } = r.scores;
+            return { ...r, scores: rest };
+          }
+          return r;
         });
       }
       state.players = state.players.filter((p) => p.id !== id);
@@ -187,8 +222,8 @@
       render();
     }
 
-    function addRound(scores) {
-      state.rounds.push({ id: uid(), scores });
+    function addRound(entries) {
+      state.rounds.push({ id: uid(), entries });
       persist();
       render();
     }
@@ -387,7 +422,7 @@
 
         for (const p of state.players) {
           const td = document.createElement("td");
-          const v = r.scores[p.id];
+          const v = getEntry(r, p.id).score;
           td.textContent = v === undefined ? "—" : v;
           tr.appendChild(td);
         }
@@ -417,20 +452,60 @@
       }
       form.classList.remove("hidden");
 
+      const fields = roundInputs();
+      const showFieldLabels = fields.length > 1;
+
       for (const p of state.players) {
-        const label = document.createElement("label");
-        if (isOut(p.id)) label.classList.add("out");
-        label.innerHTML = `<span>${Scorely.escapeHtml(p.name)}${isOut(p.id) ? " (out)" : ""}</span>`;
-        const input = document.createElement("input");
-        input.type = "number";
-        input.min = "0";
-        if (config.roundInputMax !== undefined) input.max = String(config.roundInputMax);
-        input.placeholder = isOut(p.id) ? "—" : "0";
-        input.dataset.playerId = p.id;
-        input.disabled = isOut(p.id);
-        label.appendChild(input);
-        wrap.appendChild(label);
+        const block = document.createElement("div");
+        block.className = "player-block";
+        if (isOut(p.id)) block.classList.add("out");
+        block.dataset.playerId = p.id;
+
+        const nameEl = document.createElement("div");
+        nameEl.className = "player-name";
+        nameEl.textContent = `${p.name}${isOut(p.id) ? " (out)" : ""}`;
+        block.appendChild(nameEl);
+
+        for (const field of fields) {
+          const row = document.createElement("label");
+          row.className = "input-row";
+          const input = document.createElement("input");
+          input.dataset.playerId = p.id;
+          input.dataset.field = field.key;
+          input.disabled = isOut(p.id);
+
+          if (field.type === "checkbox") {
+            input.type = "checkbox";
+            const text = document.createElement("span");
+            text.textContent = field.label;
+            row.appendChild(input);
+            row.appendChild(text);
+          } else {
+            input.type = field.type || "number";
+            if (field.min !== undefined) input.min = String(field.min);
+            if (field.max !== undefined) input.max = String(field.max);
+            input.placeholder = isOut(p.id) ? "—" : "0";
+            if (showFieldLabels) {
+              const text = document.createElement("span");
+              text.textContent = field.label;
+              row.appendChild(text);
+            }
+            row.appendChild(input);
+          }
+          block.appendChild(row);
+        }
+
+        wrap.appendChild(block);
       }
+    }
+
+    function progressSuffix(playerId) {
+      if (!config.scoring.progressKey) return "";
+      const target = state.settings[config.scoring.thresholdKey];
+      const progress = progressFor(playerId);
+      const noun = config.progressNoun || "Stage";
+      if (progress >= target) return " — Done";
+      return ` — ${noun} ${progress + 1}`;
     }
 
     function renderStatus() {
@@ -442,10 +517,14 @@
         banner.classList.remove("hidden");
         const total = totalFor(w.id);
         const target = state.settings[config.scoring.thresholdKey];
-        banner.textContent =
-          config.scoring.endCondition === "target-reach"
-            ? `🏆 ${w.name} reached ${target} first with ${total} points!`
-            : `🏆 ${w.name} wins with ${total} points!`;
+        if (config.scoring.endCondition === "target-reach") {
+          banner.textContent = `🏆 ${w.name} reached ${target} first with ${total} points!`;
+        } else if (config.scoring.endCondition === "progress-reach") {
+          const noun = config.progressNoun || "Stage";
+          banner.textContent = `🏆 ${w.name} finished ${noun.toLowerCase()} ${target} first with ${total} points!`;
+        } else {
+          banner.textContent = `🏆 ${w.name} wins with ${total} points!`;
+        }
       } else {
         banner.classList.add("hidden");
       }
@@ -466,7 +545,7 @@
         const out = isOut(p.id);
         if (out) li.classList.add("out");
         else if (leaderP && p.id === leaderP.id && state.rounds.length > 0) li.classList.add("leader");
-        li.innerHTML = `<span>${Scorely.escapeHtml(p.name)}${out ? " — OUT" : ""}</span><strong>${total}</strong>`;
+        li.innerHTML = `<span>${Scorely.escapeHtml(p.name)}${out ? " — OUT" : ""}${Scorely.escapeHtml(progressSuffix(p.id))}</span><strong>${total}</strong>`;
         list.appendChild(li);
       }
     }
@@ -485,27 +564,41 @@
         }
       });
       container.querySelector("#reset-game").onclick = resetGame;
-      container.querySelector("#download-pdf").onclick = () => Scorely.exportPdf(config, state, { totalFor, isOut, winner });
+      container.querySelector("#download-pdf").onclick = () => Scorely.exportPdf(config, state, { totalFor, isOut, winner, getEntry });
 
       container.querySelector("#round-form").addEventListener("submit", (e) => {
         e.preventDefault();
-        const inputs = container.querySelectorAll("#round-inputs input");
-        const scores = {};
-        for (const inp of inputs) {
-          if (inp.disabled) continue;
-          const v = inp.value === "" ? 0 : parseInt(inp.value, 10);
-          if (!Number.isFinite(v) || v < 0) {
-            alert("Scores must be non-negative numbers.");
-            return;
+        const blocks = container.querySelectorAll("#round-inputs .player-block");
+        const fields = roundInputs();
+        const entries = {};
+        for (const block of blocks) {
+          const playerId = block.dataset.playerId;
+          const inputs = block.querySelectorAll("input");
+          if (Array.from(inputs).every((inp) => inp.disabled)) continue;
+          const entry = {};
+          for (const inp of inputs) {
+            if (inp.disabled) continue;
+            const field = fields.find((f) => f.key === inp.dataset.field);
+            if (!field) continue;
+            if (field.type === "checkbox") {
+              entry[field.key] = inp.checked;
+            } else {
+              const v = inp.value === "" ? 0 : parseInt(inp.value, 10);
+              if (!Number.isFinite(v) || v < 0) {
+                alert(`${field.label} must be a non-negative number.`);
+                return;
+              }
+              if (field.max !== undefined && v > field.max) {
+                alert(`${field.label} must be at most ${field.max}.`);
+                return;
+              }
+              entry[field.key] = v;
+            }
           }
-          if (config.roundInputMax !== undefined && v > config.roundInputMax) {
-            alert(`Scores must be at most ${config.roundInputMax}.`);
-            return;
-          }
-          scores[inp.dataset.playerId] = v;
+          entries[playerId] = entry;
         }
-        if (Object.keys(scores).length === 0) return;
-        addRound(scores);
+        if (Object.keys(entries).length === 0) return;
+        addRound(entries);
       });
     }
 
@@ -562,7 +655,7 @@
     const body = state.rounds.map((r, idx) => [
       `R${idx + 1}`,
       ...state.players.map((p) => {
-        const v = r.scores[p.id];
+        const v = helpers.getEntry(r, p.id).score;
         return v === undefined ? "—" : String(v);
       }),
     ]);

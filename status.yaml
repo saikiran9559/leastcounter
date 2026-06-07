@@ -22,8 +22,8 @@ updated: 2026-06-07
 live_url: https://saikiran9559.github.io/scorely/
 repo: saikiran9559/scorely
 
-current_phase: 2
-next_up: 2.5
+current_phase: 3
+next_up: 3.1
 
 phases:
 
@@ -97,7 +97,7 @@ phases:
 
   - phase: 2
     title: Pattern 1+2 — cumulative scoring games (easy wins)
-    status: planned
+    status: done
     deps: [1]
     summary: >
       Highest leverage phase: 8 games shipped as thin engine configs. Patterns
@@ -123,13 +123,12 @@ phases:
         notes: Stake multiplier deferred — out of scope for the pure-config engine.
       - id: 2.5
         title: Phase 10  (pattern 1 + per-player phase column)
-        status: planned
+        status: done
         notes: >
-          Needs engine extension for per-round multi-field input (score +
-          phase-completed checkbox), which changes the round data model
-          (r.scores -> r.entries with multiple keys per player). Designed
-          to land after the rest of Phase 2 to avoid blocking easier games
-          on the schema work.
+          Shipped with engine extension: roundInputs schema (multi-field
+          per-player per-round) + progress-reach endCondition. Round data
+          model migrated from r.scores to r.entries with backwards-compat
+          read fallback. See ADR 0004.
       - id: 2.6
         title: Dominoes  (pattern 1)
         status: done

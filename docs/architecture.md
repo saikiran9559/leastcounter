@@ -88,17 +88,41 @@ What a game declares to the engine:
 
   roundInputMax: 80,            // optional — caps the per-player per-round score input
                                 // (used by Rummy's 80-point full-count cap)
+                                // Equivalent to roundInputs: [{ key:'score', max: 80 }]
+
+  roundInputs: [                // optional — multi-field per-player per round
+    { key: 'score',         label: 'Score',           type: 'number',   min: 0 },
+    { key: 'phaseComplete', label: 'Completed phase', type: 'checkbox' },
+  ],
+
+  progressNoun: 'Phase',        // optional — when scoring.progressKey is set, the status list
+                                // shows "<noun> N" per player. Default: "Stage".
 }
 ```
 
-The four combinations of `direction × endCondition` the engine supports today:
+### Round data shape
+
+Rounds support two formats; the engine reads both, writes the new one:
+
+```js
+// New format (current writes):
+{ id: 'r1', entries: { abc123: { score: 14, phaseComplete: true }, def456: { score: 0 } } }
+
+// Legacy format (still read for pre-extension saves):
+{ id: 'r1', scores: { abc123: 14, def456: 0 } }
+```
+
+The internal `getEntry(round, playerId)` helper normalizes to `{ score, ...extraFields }`. Existing saved games keep working through this read-fallback; new rounds added after the extension always use the new format.
+
+The `direction × endCondition` matrix the engine supports today:
 
 | direction | endCondition | Example | Behavior |
 |---|---|---|---|
-| `low`  | `threshold-elim` | Least Count, Rummy | Players are OUT when total ≥ threshold; last active player wins |
+| `low`  | `threshold-elim` | Least Count, Rummy, Crazy Eights, Tonk, Dominoes, Rummikub | Players are OUT when total ≥ threshold; last active player wins |
 | `high` | `target-reach`   | UNO, Farkle | First player to reach target wins; no eliminations |
 | `low`  | `target-reach`   | (unusual) | First to reach target wins, lowest among reachers (rare) |
 | `high` | `threshold-elim` | (theoretical) | Players are eliminated for crossing — not currently used |
+| `low`  | `progress-reach` | Phase 10 | First player whose per-round "completed" count reaches target wins; lowest score breaks ties |
 
 ## Instance state shape
 
@@ -112,7 +136,9 @@ Held in memory and persisted to `localStorage`:
     { id: 'def5678', name: 'Rony' },
   ],
   rounds: [
-    { id: 'r1', scores: { abc1234: 14, def5678: 23 } },
+    // New format (used for all writes after the multi-field schema landed):
+    { id: 'r1', entries: { abc1234: { score: 14 }, def5678: { score: 23 } } },
+    // Legacy format (still read transparently if saved before the extension):
     { id: 'r2', scores: { abc1234: 23, def5678: 13 } },
   ],
 }
