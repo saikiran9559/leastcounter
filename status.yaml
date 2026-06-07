@@ -440,8 +440,13 @@ phases:
         notes: Multiplier ladder (matadors × hand × schneider × schwarz × ouvert). Own engine.
       - id: 8.4
         title: Go  (territory + captures + komi calculator)
-        status: deferred
-        notes: Territory counter + captures + komi. Own engine.
+        status: done
+        notes: >
+          Shipped on the rounds engine. 2 players (default Black/White),
+          per-game: territory + captures (summed). User adds komi (6.5
+          or 7.5) to White's captures manually — keeping that bit of
+          domain knowledge with the player rather than baking a fractional
+          adjustment into the engine.
       - id: 8.5
         title: Werewolf / Mafia
         status: deferred
