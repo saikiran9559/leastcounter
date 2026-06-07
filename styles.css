@@ -654,6 +654,90 @@ tfoot td {
   .game-card { padding: 16px; }
 }
 
+/* Scorecards (grid engine) */
+
+.scorecard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.scorecard {
+  background: rgba(7, 9, 26, 0.55);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.2s ease, box-shadow 0.25s ease;
+}
+.scorecard:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(124, 142, 255, 0.15);
+}
+
+.scorecard-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+.scorecard-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: -0.01em;
+}
+.scorecard-total {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.8rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  transition: color 0.3s ease;
+}
+.scorecard-total.leader {
+  color: var(--good);
+  text-shadow: 0 0 18px rgba(74, 222, 128, 0.5);
+}
+.scorecard-total.flash { animation: total-flash 0.7s ease; }
+
+.scorecard-progress {
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.scorecard-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.scorecard-row {
+  display: grid;
+  grid-template-columns: 1fr 72px;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.92rem;
+  color: var(--text-dim);
+  background: transparent;
+  padding: 0;
+  border: 0;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+.scorecard-row input {
+  padding: 6px 8px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
 /* Confetti — instantiated by JS only on winner */
 .confetti-piece {
   position: fixed;

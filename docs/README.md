@@ -28,3 +28,4 @@ Files marked "(when warranted)" don't exist until there's something worth saying
 - [`0003-engine-api.md`](decisions/0003-engine-api.md) — engine API is config-driven, not callbacks or classes
 - [`0004-round-entries-and-progress.md`](decisions/0004-round-entries-and-progress.md) — multi-field per-round inputs + `progress-reach` endCondition (Phase 10)
 - [`0005-phase-3a-light-team-and-threshold-end.md`](decisions/0005-phase-3a-light-team-and-threshold-end.md) — Phase 3a engine additions (playerNoun, defaultPlayers, threshold-end) and rationale for splitting partnership games into 3b
+- [`0006-grid-engine.md`](decisions/0006-grid-engine.md) — sibling engine-grid.js for category-grid games (Wingspan, 7 Wonders, Disc Golf), and the Phase 4a/4b split

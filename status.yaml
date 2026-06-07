@@ -22,13 +22,15 @@ updated: 2026-06-07
 live_url: https://saikiran9559.github.io/scorely/
 repo: saikiran9559/scorely
 
-current_phase: 4
-next_up: 4.1
+current_phase: 5
+next_up: 5.1
 notes: >
-  Phase 3 split into 3a (done — Hearts, Mendikot, Court Piece via small
-  engine additions) and 3b (deferred — Spades, 28/29/56, Euchre, Pitch,
-  Whist all need per-round score formulas; ADR 0005 explains). Moving on
-  to Phase 4 (category-grid games) in the meantime; 3b can pick up later.
+  Phase 3 split into 3a (done — Hearts, Mendikot, Court Piece) and 3b
+  (deferred — Spades, 28/29/56, Euchre, Pitch, Whist need score formulas;
+  ADR 0005). Phase 4 split into 4a (done — Wingspan, 7 Wonders, Disc Golf
+  via new engine-grid.js) and 4b (deferred — Yahtzee, Bowling, Golf modes,
+  Archery; ADR 0006 lists per-game gaps). Moving on to Phase 5 (counter-
+  only games — Tennis, Catan, etc.) in the meantime.
 
 phases:
 
@@ -195,44 +197,47 @@ phases:
         notes: Nested counters (5 points = a game, 2 games = a rubber) — distinct from the flat-counter shape the engine supports today.
 
   - phase: 4
-    title: Pattern 3 — fixed-category grid games
-    status: planned
+    title: Pattern 3 — fixed-category grid games (split into 4a done / 4b deferred)
+    status: partial
     deps: [1]
     summary: >
-      Yahtzee-style: each player fills N named categories with bonuses. Different
-      shape from round-based scoring but reusable across both card and sport games.
+      Phase 4a (done): new engine-grid.js for sum-of-categories games.
+      Ships Wingspan, 7 Wonders, Disc Golf. Phase 4b (deferred): Yahtzee,
+      Bowling, Golf-with-modes, Archery — each needs an extension beyond
+      simple summing (section bonuses, frame carry-over, scoring modes,
+      nested grids). See ADR 0006.
     tasks:
       - id: 4.1
-        title: Engine extension — category grid (named slots, fill-once, derived bonuses)
-        status: planned
+        title: Engine — engine-grid.js (sum-of-categories shape)
+        status: done
+        notes: Derived/bonus categories (Yahtzee upper bonus, Yahtzee jokers) deferred to 4b.
       - id: 4.2
         title: Yahtzee
-        status: planned
-        deps: [4.1]
+        status: deferred
+        notes: Upper-section bonus, Yahtzee bonus, per-category constraints — needs derived/computed category support.
       - id: 4.3
         title: Bowling  (10 frames + strike/spare carry-over logic)
-        status: planned
-        deps: [4.1]
+        status: deferred
+        notes: Strike/spare bonuses pull from adjacent cells; needs cell-interdependence beyond simple summing.
       - id: 4.4
         title: Golf  (18 holes — stroke / stableford / match play modes)
-        status: planned
-        deps: [4.1]
+        status: deferred
+        notes: Stroke mode is trivially the same as Disc Golf; stableford/match-play modes need per-mode computation.
       - id: 4.5
         title: Disc golf  (Golf without the modes)
-        status: planned
-        deps: [4.4]
+        status: done
+        notes: 18 holes auto-generated from settings.holes; configurable count.
       - id: 4.6
         title: Archery  (arrows per end, 10/9/8/X scoring)
-        status: planned
-        deps: [4.1]
+        status: deferred
+        notes: Multi-input per category (6 arrows × N ends) — nested grid shape.
       - id: 4.7
         title: 7 Wonders end-game calculator  (military, treasury, wonders, civilian, commerce, guilds, science)
-        status: planned
-        deps: [4.1]
+        status: done
+        notes: Science scoring (1+4+9+...+7 per set) left to the user — entered as a single number.
       - id: 4.8
         title: Wingspan end-game calculator  (birds, bonus cards, EORs, eggs, food, tucked)
-        status: planned
-        deps: [4.1]
+        status: done
 
   - phase: 5
     title: Pattern 6 — counter-only games

@@ -9,13 +9,17 @@ The codebase is intentionally small and dependency-free. No build step, no frame
 ```
 index.html              Shell with header, #app container, script tags
 styles.css              All styling — shared across home and games
-app.js                  Bootstrap: hash router + home screen
-engine.js               Generic scoring engine (state, actions, rendering, persistence, PDF export)
+app.js                  Bootstrap: hash router + home screen + shape dispatch
+engine.js               Rounds engine — players + dynamic rounds (Least Count, UNO, Hearts, ...)
+engine-grid.js          Grid engine — players + fixed N category slots (Wingspan, 7 Wonders, Disc Golf)
 games/
   least-count.js        Game config (config object passed to Scorely.defineGame)
   uno.js                Game config
+  wingspan.js           Grid game config (config.shape = 'grid')
   ...                   One file per game, ~10–40 lines each
 ```
+
+Game configs declare their shape via `config.shape: 'rounds' | 'grid'` (default `'rounds'`). `app.js` dispatches to `Scorely.createInstance` or `Scorely.createGridInstance` accordingly. Two engines live in parallel — see [ADR 0006](decisions/0006-grid-engine.md) for the rationale.
 
 Load order (in `index.html`):
 
@@ -173,6 +177,38 @@ The engine's `render()` rebuilds the container's innerHTML on every state change
 This means CSS animations fire only on real state changes — not on incidental re-renders (e.g., navigating away and back). See `styles.css` for the keyframes.
 
 `prefers-reduced-motion` disables all animations via media query.
+
+## Grid engine (engine-grid.js)
+
+Sibling to the rounds engine for games with fixed N named categories per player. Currently used by Wingspan, 7 Wonders, Disc Golf.
+
+GameConfig fields specific to grid games:
+
+```js
+{
+  shape: 'grid',                // tells app.js to use Scorely.createGridInstance
+  categories: [                 // array OR function(settings) → array
+    { key: 'birds',  label: 'Birds' },
+    { key: 'bonus',  label: 'Bonus cards' },
+  ],
+  scoring: { direction: 'high' }, // 'low' or 'high' — no endCondition (game ends when all
+                                  // players fill all categories)
+}
+```
+
+State shape for grid games:
+
+```js
+{
+  settings: { holes: 18 },
+  players: [{ id, name }],
+  scores: {
+    [playerId]: { [categoryKey]: number },
+  },
+}
+```
+
+Score editing is direct (no Save-round button) — each cell edits in place, totals update live without re-rendering inputs (preserves focus). A winner is declared only when every player has filled every category; before that, the status list shows a leader and per-player progress (e.g. `12 / 18 filled`).
 
 ## What the engine does NOT do
 
