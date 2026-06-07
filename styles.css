@@ -108,8 +108,75 @@ main > .card:nth-child(4) { animation-delay: 0.24s; }
 header h1 {
   animation: fade-slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+header h1 a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+header h1 a:hover { color: var(--accent); }
+
 .tagline {
   animation: fade-slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+}
+
+#back-nav {
+  margin-top: 8px;
+  animation: fade-slide-up 0.5s ease both;
+}
+#back-nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.18s ease;
+}
+#back-nav a:hover { color: var(--accent); }
+
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.game-card {
+  display: block;
+  padding: 16px;
+  background: #0c0f22;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+.game-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(108, 140, 255, 0.18);
+}
+.game-card h3 {
+  margin: 0 0 6px;
+  color: var(--text);
+}
+.game-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.home-footer {
+  text-align: center;
+}
+.home-footer .muted { color: var(--muted); margin: 0; }
+.home-footer a { color: var(--accent); }
+
+.game-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+.game-header .tagline {
+  margin: 6px 0 0;
+  animation: none;
 }
 
 .card h2 {

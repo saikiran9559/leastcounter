@@ -21,11 +21,15 @@ Project-specific rules that govern how to work on this codebase live in `.claude
 - [`documentation`](.claude/rules/documentation.md) — write docs in `docs/` for decisions, new games, conventions, and gotchas **without being asked**. The user will not remind you; this rule replaces those reminders. Apply at the end of any non-trivial task.
 
 ## Files
-- `index.html` — markup and CDN script tags (jsPDF + autoTable for export)
-- `styles.css` — dark-theme UI
-- `app.js` — state, rendering, localStorage persistence, PDF export
+- `index.html` — shell (header, #app container, script tags)
+- `styles.css` — shared styles (home + all games)
+- `app.js` — bootstrap: hash router (`#/`, `#/<game-id>`) + home screen
+- `engine.js` — generic scoring engine (state, actions, rendering, persistence, animations, PDF export)
+- `games/<slug>.js` — one file per game; each calls `Scorely.defineGame({...})` to register a config
 
-State is held in a single `state` object (`limit`, `players[]`, `rounds[]`) and persisted to `localStorage` under the key `leastcounter:v1` (legacy name from before the repo rename — kept to preserve existing users' saved games). When we add more games, namespace future keys as `scorely:<game>:v1`.
+Full architecture and the engine API contract live in [`docs/architecture.md`](docs/architecture.md). Engine API rationale is captured in [ADR 0003](docs/decisions/0003-engine-api.md).
+
+Per-game state is persisted to `localStorage` under `scorely:<game-id>:v1` (e.g., `scorely:least-count:v1`). The Least Count instance reads a one-time fallback from the legacy `leastcounter:v1` key if its namespaced key is missing.
 
 ## Deployment
 

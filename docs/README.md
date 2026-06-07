@@ -24,3 +24,4 @@ Files marked "(when warranted)" don't exist until there's something worth saying
 
 - [`0001-vanilla-no-build-step.md`](decisions/0001-vanilla-no-build-step.md) — use plain HTML/CSS/JS, no bundler or framework
 - [`0002-engine-first-before-more-games.md`](decisions/0002-engine-first-before-more-games.md) — extract a reusable scoring engine before adding the second game
+- [`0003-engine-api.md`](decisions/0003-engine-api.md) — engine API is config-driven, not callbacks or classes

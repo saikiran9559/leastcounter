@@ -22,8 +22,8 @@ updated: 2026-06-07
 live_url: https://saikiran9559.github.io/scorely/
 repo: saikiran9559/scorely
 
-current_phase: 1
-next_up: 1.1
+current_phase: 2
+next_up: 2.2
 
 phases:
 
@@ -61,46 +61,39 @@ phases:
 
   - phase: 1
     title: Reusable scoring engine
-    status: planned
+    status: done
     deps: []
     summary: >
-      Extract the Least Count code into a generic engine that future games
-      consume as configs. Without this every new game becomes a copy-paste of
-      app.js and the codebase fragments. This phase is a prerequisite for
-      everything after — do it before adding the second game.
+      Extracted the Least Count code into a generic engine in engine.js.
+      Games are declarative configs (Scorely.defineGame). Hash router added
+      (#/, #/<game-id>) with home screen. UNO shipped as second game to
+      validate the engine API. ADR 0003 captures the design rationale.
     goals:
-      - Game-agnostic state shape (players, rounds, totals, win condition)
-      - Hash-based router so each game lives at /#/<game-slug>
-      - Game registry + home screen listing available games
-      - Least Count refactored as the proof-of-concept consumer
-      - Storage keys namespaced as scorely:<game>:v1
+      - Game-agnostic state shape (players, rounds, totals, win condition)  # done
+      - Hash-based router so each game lives at /#/<game-slug>                # done
+      - Game registry + home screen listing available games                   # done
+      - Least Count refactored as the proof-of-concept consumer              # done
+      - Storage keys namespaced as scorely:<game>:v1                          # done
     tasks:
       - id: 1.1
         title: Design engine API — what's game-agnostic vs game-specific
-        status: planned
-        notes: >
-          Likely { config: { win, scoreShape, render? }, state, actions }.
-          Write an ADR (docs/decisions/0002-engine-api.md) once the shape settles.
+        status: done
+        notes: Config-driven (direction × endCondition matrix). See ADR 0003.
       - id: 1.2
         title: Hash router (#/least-count, #/uno, ...) with browser back/forward
-        status: planned
-        deps: [1.1]
+        status: done
       - id: 1.3
         title: Game registry + home screen listing available games
-        status: planned
-        deps: [1.2]
+        status: done
       - id: 1.4
         title: Refactor Least Count to consume the engine
-        status: planned
-        deps: [1.1]
+        status: done
       - id: 1.5
         title: Migrate localStorage to scorely:<game>:v1 with read-fallback from leastcounter:v1
-        status: planned
-        deps: [1.4]
+        status: done
       - id: 1.6
         title: Write docs/architecture.md + ADR for engine API
-        status: planned
-        deps: [1.4]
+        status: done
 
   - phase: 2
     title: Pattern 1+2 — cumulative scoring games (easy wins)
@@ -113,7 +106,8 @@ phases:
     tasks:
       - id: 2.1
         title: UNO  (pattern 2, target 500)
-        status: planned
+        status: done
+        notes: Shipped in Phase 1 as engine-validation second game per ADR 0002.
       - id: 2.2
         title: Rummy — Indian 13-card  (pattern 1, threshold 101/201, per-round cap 80, drop = 20/40)
         status: planned
