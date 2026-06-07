@@ -370,8 +370,13 @@ phases:
         notes: 2-team partnership; user counts meld + tricks manually and enters totals.
       - id: 7.3
         title: Canasta
-        status: deferred
-        notes: Many itemized bonuses (red threes, clean/dirty canastas, going-out, hand penalty) — grid card per hand.
+        status: done
+        notes: >
+          Shipped via computeTotal. Per team per hand: melded card points
+          + natural canasta bonus + mixed canasta bonus + red 3s + going
+          out − hand penalty. User enters pre-computed bonus values
+          (multipliers ×500/×300/×100 are domain knowledge they already
+          have at the table). Target 5000.
       - id: 7.4
         title: 500
         status: done
