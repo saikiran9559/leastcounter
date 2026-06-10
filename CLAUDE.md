@@ -20,6 +20,7 @@ Project-specific rules that govern how to work on this codebase live in `.claude
 - [`deploy-sync`](.claude/rules/deploy-sync.md) — keep `.claude/commands/deploy.md` and the **Deployment** section below in lockstep. Apply at the end of any task that changes deployment.
 - [`documentation`](.claude/rules/documentation.md) — write docs in `docs/` for decisions, new games, conventions, and gotchas **without being asked**. The user will not remind you; this rule replaces those reminders. Apply at the end of any non-trivial task.
 
+
 ## Files
 - `index.html` — shell + script load order. Includes PWA manifest, iOS meta tags, the global `<datalist id="player-names">`, and the `<button id="sound-toggle">`.
 - `styles.css` — shared dark-theme styles + the `@media print` block.

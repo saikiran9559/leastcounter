@@ -57,6 +57,7 @@
     let container = null;
     let lastWinnerId = null;
     let lastScores = {};
+    const scoreHistory = []; // undo stack — each entry is a scores snapshot
 
     function persist() { saveState(config, state); }
 
@@ -117,13 +118,32 @@
       render();
     }
 
+    function pushHistory() {
+      scoreHistory.push({ ...state.scores });
+      if (scoreHistory.length > 50) scoreHistory.shift(); // cap at 50 steps
+    }
+
+    function undoScore() {
+      if (scoreHistory.length === 0) return;
+      const prev = scoreHistory.pop();
+      for (const id of Object.keys(prev)) state.scores[id] = prev[id];
+      persist();
+      updateScoresOnly();
+      // refresh undo button disabled state
+      const btn = container && container.querySelector("#undo-score");
+      if (btn) btn.disabled = scoreHistory.length === 0;
+    }
+
     function increment(playerId, delta) {
       const next = (state.scores[playerId] || 0) + delta;
       if (next < 0) return;
+      pushHistory();
       state.scores[playerId] = next;
       Scorely.playTap();
       persist();
       updateScoresOnly();
+      const btn = container && container.querySelector("#undo-score");
+      if (btn) btn.disabled = false;
     }
 
     function resetScores() {

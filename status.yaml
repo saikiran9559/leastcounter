@@ -18,24 +18,22 @@
 #     docs/decisions/ — don't bury the rationale in this file.
 
 project: Scorely
-updated: 2026-06-07
+updated: 2026-06-10
 live_url: https://saikiran9559.github.io/scorely/
 repo: saikiran9559/scorely
 
-current_phase: done
-next_up: maintenance
+current_phase: 10
+next_up: cricket-match-scoreboard
 notes: >
   Phases 0–9 all shipped. 49 built-in games + Tournament + custom games
   via the in-app builder. Werewolf (8.5) is explicit out-of-scope as a
   state-tracker. 7 sibling engines, 15 ADRs.
-  Phase 9 (Discovery + UX polish) closed out — all 13 tasks done:
-  search, category chips, Recent row, cross-game player-name
-  autocomplete, favorites, rules popover, PWA, game discovery, print
-  stylesheet, stats, tournament mode, sound effects, custom game
-  builder.
-  From here: per-game scope follow-ups documented in individual ADRs
-  (Tennis tiebreak, Bowling PDF, Bridge contract calc, Mahjong variant
-  tables, etc.). Pick up when a real user asks.
+  Phase 9 (Discovery + UX polish) closed out — all 13 tasks done.
+  Phase 10 consolidates every deferred, partial, and follow-up item
+  from Phases 2–9 into a single actionable backlog under the banner
+  of "Cricket Match Scoreboard" — the biggest single pending feature —
+  plus all the smaller polish items that were explicitly deferred.
+  Pick up any task when a real user asks or when it blocks a release.
 
 phases:
 
@@ -724,3 +722,396 @@ phases:
 #   Total:  50 games + 1 already shipped (49 of 50 actually built; Werewolf out-of-scope)
 #
 # Phase 9: 13 UX/discovery tasks — no new games, all polish on the 49-game grid.
+# Phase 10: Cricket Match Scoreboard — 1 major new engine + every deferred/partial item from Phases 2–9.
+
+  - phase: 10
+    title: Cricket Match Scoreboard
+    status: planned
+    deps: []
+    summary: >
+      The single biggest pending feature — a real ball-by-ball cricket engine
+      (ADR 0016) — plus every deferred, partial, and follow-up item that was
+      explicitly punted from Phases 2–9. All collected here so there is one
+      place to look for outstanding work. Tasks are independent; pick up any
+      one when a real user asks or when it unblocks something else.
+
+    tasks:
+
+      # ── CRICKET ENGINE (the anchor feature of this phase) ──────────────────
+
+      - id: 10.1
+        title: "engine-cricket.js — ball-by-ball engine (eighth sibling)"
+        status: planned
+        notes: >
+          Core new engine per ADR 0016. Manages match state: setup →
+          toss → batting → complete. Ball-by-ball entry panel
+          (W · 0 · 1 · 2 · 3 · 4 · 6 · WD · NB · B · LB · Pen).
+          Derived stats (batter, bowler, partnership, over summary)
+          computed from balls[] — never stored. See ADR 0016 for full
+          state shape and consequences.
+
+      - id: 10.2
+        title: Match setup UI — two teams, rosters, match type, overs
+        status: planned
+        notes: >
+          Setup screen: team names, player roster entry (names),
+          match type selector (T20 / ODI / Test / Custom), overs limit.
+          Feeds into state.teams and state.settings. Wired to
+          engine-cricket.js createCricketInstance().
+
+      - id: 10.3
+        title: Toss & batting-order screen
+        status: planned
+        notes: >
+          Two-step: (1) which team won toss, (2) elected to bat or field.
+          Determines innings[0].battingTeam / bowlingTeam. First two
+          batters and first bowler are selected here.
+
+      - id: 10.4
+        title: Ball-by-ball entry panel
+        status: planned
+        notes: >
+          Big-button row: W · 0 · 1 · 2 · 3 · 4 · 6 · WD · NB · B · LB · Pen.
+          On W: open wicket dialog (dismissal type, fielder, next batter).
+          On over end: prompt for new bowler. Extras (WD/NB) do not
+          advance the legal-ball count. Undo last ball button.
+
+      - id: 10.5
+        title: Wicket dialog — dismissal type, fielder(s), next batter
+        status: planned
+        notes: >
+          Modal on W press. Dismissal types: Bowled, Caught, LBW, Run Out,
+          Stumped, Hit Wicket, Ret Hurt, Obstructed. Optional fielder name
+          (from bowling team roster). Next batter selector from remaining
+          batting roster. Bowler gets wicket credit except Run Out / Ret Hurt.
+
+      - id: 10.6
+        title: Live scorecard — batting card + bowling card + current over
+        status: planned
+        notes: >
+          Batting card: each batter's runs / balls / 4s / 6s / SR /
+          dismissal. Bowling card: each bowler's O / M / R / W / Econ.
+          Current over: ball-by-ball symbols (· / 1 / 2 / 4 / 6 / W /
+          wd / nb / b / lb). Current partnership runs + balls.
+          All derived in real-time from innings.balls[].
+
+      - id: 10.7
+        title: Fall of wickets list
+        status: planned
+        notes: >
+          Ordered list: wicket# → score at fall → batter name → over.
+          Derived from balls[] where ball.wicket != null.
+          Rendered below the batting card.
+
+      - id: 10.8
+        title: Over-by-over analysis table
+        status: planned
+        notes: >
+          One row per completed over: over#, bowler, runs, wickets,
+          dot balls, boundaries. Derived from balls[] grouped by
+          ball.over. Useful post-match review.
+
+      - id: 10.9
+        title: Innings switch — second innings setup + target display
+        status: planned
+        notes: >
+          Auto-prompt when first innings ends (all-out or overs complete).
+          Second innings: show target (first innings total + 1), flip
+          batting/bowling teams, select opening pair and first bowler.
+          Live required-run-rate and runs-remaining shown in header.
+
+      - id: 10.10
+        title: Match result declaration
+        status: planned
+        notes: >
+          Trigger: target chased (team wins by N wickets) or second
+          innings complete (team wins by N runs, or tie, or draw for
+          Test). Winner banner consistent with other engines. Match
+          summary: both innings totals, top scorer, best bowler.
+
+      - id: 10.11
+        title: Shot type picker (optional per ball)
+        status: planned
+        notes: >
+          Optional enrichment layer after each ball entry.
+          Options: Drive, Cut, Pull, Hook, Flick, Glance, Sweep,
+          Slog, Defensive, Leave, Other. Stored as ball.shot.
+          Shown in per-batter breakdown post-innings.
+
+      - id: 10.12
+        title: Wagon wheel zone picker (optional per ball)
+        status: planned
+        notes: >
+          8-zone ground map: cover, mid-off, mid-on, mid-wicket,
+          square leg, fine leg, third man, point. Stored as ball.zone.
+          v1: radio buttons or a simple grid. v2: SVG field diagram
+          with tap zones (follow-up task 10.13).
+
+      - id: 10.13
+        title: Wagon wheel SVG field diagram — interactive zone tap
+        status: planned
+        notes: >
+          Follow-up to 10.12. Replace the radio-button zone picker with
+          an SVG cricket field with 8 tappable sectors. Tap a sector →
+          sets ball.zone. Renders post-innings as a heat-map overlay
+          (dot size or colour intensity = hit count per zone).
+          Deferred from ADR 0016 follow-up list.
+
+      - id: 10.14
+        title: Cricket scorecard PDF export
+        status: planned
+        notes: >
+          Full scorecard as printable PDF via jsPDF + autoTable.
+          Two tables per innings (batting + bowling), fall of wickets,
+          over analysis. Complex layout — deferred from ADR 0016.
+          Blocked on 10.1–10.10 being done first.
+
+      - id: 10.15
+        title: Update games/cricket.js to use engine-cricket shape
+        status: planned
+        notes: >
+          Replace the current trivial rounds config with
+          shape: 'cricket' and a richer tagline. Update app.js
+          dispatch map: cricket → Scorely.createCricketInstance.
+          Add <script src="engine-cricket.js"> in index.html
+          before app.js. Update games-rules.js entry.
+
+      - id: 10.16
+        title: Write docs/games/cricket.md
+        status: planned
+        notes: >
+          Document the cricket engine: state shape, derived-stats
+          contract, UI flow, known limits (no DRS, no powerplay
+          enforcement, no LBW prediction). Per documentation rule.
+
+      # ── DEFERRED POLISH FROM PHASE 2 ───────────────────────────────────────
+
+      - id: 10.17
+        title: "Rummy: drop quick-fill buttons (20 first drop / 40 middle drop)"
+        status: planned
+        notes: >
+          Deferred from task 2.2. Two quick-fill buttons per player row
+          in the round-entry form: "Drop 20" and "Drop 40". Fills that
+          player's score field with the appropriate drop penalty so
+          users don't type it manually. Small engine extension or pure
+          UI widget in games/rummy.js.
+
+      - id: 10.18
+        title: "Tonk: stake multiplier (double on spread, triple on 49)"
+        status: planned
+        notes: >
+          Deferred from task 2.4. Optional stake field in settings;
+          multiplier applied to net chip count per hand. Requires either
+          a computeTotal callback or a new config primitive for
+          per-round stake scaling. Out of scope for the pure-config
+          engine at Phase 2 time — now addressable via computeTotal.
+
+      # ── DEFERRED POLISH FROM PHASE 3 ───────────────────────────────────────
+
+      - id: 10.19
+        title: "Hearts: shoot-the-moon one-click UX (26 to all others)"
+        status: planned
+        notes: >
+          Deferred from task 3.3. When a player shoots the moon, they
+          score 0 and all other players get 26 added automatically.
+          Currently users enter 0/26 manually. Add a "🌙 Shoot the moon"
+          button in the round-entry form that fills 0 for the active
+          player and 26 for all others.
+
+      - id: 10.20
+        title: "Court Piece: auto kot-bonus (double on 7–0 sweep)"
+        status: planned
+        notes: >
+          Deferred from task 3.5. When one team wins all 7 hands in a
+          deal (a "kot"), their score doubles. Currently tracked manually.
+          Add a "Kot!" checkbox per round that triggers the 2× multiplier
+          in a computeTotal callback.
+
+      # ── DEFERRED POLISH FROM PHASE 4 ───────────────────────────────────────
+
+      - id: 10.21
+        title: "Golf: Stableford mode (direction high, per-hole points)"
+        status: planned
+        notes: >
+          Deferred from task 4.4 (partial). Stableford assigns points
+          per hole based on net score vs par (eagle=4, birdie=3,
+          par=2, bogey=1, double bogey+=0). Ships as a separate game
+          config stableford-golf or as a mode selector inside golf.js
+          with direction: 'high' and per-hole point lookup.
+
+      - id: 10.22
+        title: "Golf: match-play mode (count holes won, not strokes)"
+        status: planned
+        notes: >
+          Deferred from task 4.4 (partial). Match play counts holes won
+          vs lost vs halved; result is expressed as "3&2" (3 up with 2
+          to play). A fundamentally different shape from stroke play —
+          likely its own config with endCondition based on hole-lead
+          and remaining holes. Ships as a separate config match-golf.
+
+      - id: 10.23
+        title: "Yahtzee: engine-side upper-section bonus auto-derivation (+35 if upper ≥ 63)"
+        status: planned
+        notes: >
+          Deferred from task 4.2. Currently the user manages the +35
+          bonus manually in a 'Bonuses' category. A future engine
+          extension to engine-grid.js could auto-sum upper categories
+          and inject the bonus when the threshold is met. Low priority
+          — the manual workaround is well-documented and works fine.
+
+      - id: 10.24
+        title: "Bowling: PDF scorecard export"
+        status: planned
+        notes: >
+          Deferred from task 4.3. The bowling engine has X/spare/number
+          notation and cumulative frame scores — a printable scorecard
+          is a natural follow-up. Blocked on the complex 10-frame + 10th
+          special-frame table layout in jsPDF/autoTable.
+
+      # ── DEFERRED POLISH FROM PHASE 5 ───────────────────────────────────────
+
+      - id: 10.25
+        title: "Tennis: tiebreak at 6-6 (7-point or 10-point match tiebreak)"
+        status: planned
+        notes: >
+          Deferred from task 5.3. Currently the engine plays advantage
+          sets (no tiebreak). A 7-point tiebreak at 6-6 is the standard
+          tour rule; a 10-point match tiebreak replaces the third set in
+          many modern formats. Requires a new sub-mode in engine-tennis.js
+          — the most-requested follow-up for that engine.
+
+      - id: 10.26
+        title: "Tennis: service indicator (who is serving)"
+        status: planned
+        notes: >
+          Deferred from task 5.3. A simple ball/dot marker next to the
+          server's name. Service changes on every game, and sides at
+          every set. Pure display state derived from game count parity
+          — no scoring logic changes needed.
+
+      - id: 10.27
+        title: "Tennis: undo last point"
+        status: planned
+        notes: >
+          Deferred from task 5.3. The engine has no undo path — a miss-tap
+          on +POINT is permanent. Store the last ball in a one-deep undo
+          buffer; an "Undo" button replays the inverse transition. More
+          complex than other engines because tennis state is a nested FSM
+          (points → games → sets).
+
+      # ── DEFERRED POLISH FROM PHASE 6 ───────────────────────────────────────
+
+      - id: 10.28
+        title: "Poker: tournament mode (single buy-in, prize structure)"
+        status: planned
+        notes: >
+          Deferred from task 6.2. Cash-game ledger is live. Tournament
+          mode is different: one buy-in per player, optional re-buys,
+          prize pool split by finishing position. Likely a separate
+          game config (poker-tournament) rather than a mode flag inside
+          the ledger engine.
+
+      - id: 10.29
+        title: "Chess: Swiss pairings + Buchholz / Sonneborn-Berger tiebreakers"
+        status: planned
+        notes: >
+          Deferred from task 6.5. Currently a simple rounds config —
+          per round, each player enters 2/1/0. Proper Swiss pairings
+          (avoid repeat opponents, pair by score group) and Buchholz /
+          SB tiebreakers require a dedicated pairing engine. Separate
+          future engine if/when prioritized.
+
+      # ── DEFERRED POLISH FROM PHASE 7 ───────────────────────────────────────
+
+      - id: 10.30
+        title: "Darts Cricket: points mode (score while opponents haven't closed)"
+        status: planned
+        notes: >
+          Deferred from task 7.7. v1 is the closing race only — first
+          player to close all 7 numbers wins. Points mode adds: hitting
+          an already-closed number scores points (×value) while opponents
+          haven't closed it yet; highest score wins if everyone closes.
+          Requires extending engine-darts-cricket.js with a per-number
+          points counter per player.
+
+      - id: 10.31
+        title: "Belote / Coinche: itemized declarations (belote-rebelote, sequences, carré)"
+        status: planned
+        notes: >
+          Deferred from task 7.5. Currently users total their declaration
+          points and enter as 'extras'. Auto-itemizing (belote-rebelote
+          = 20, sequence of 3 = 20, carré = 100/150/200 depending on rank)
+          would need a declaration picker dialog per hand. Medium complexity.
+
+      - id: 10.32
+        title: "Belote / Coinche: Coinche doubling (×2 / ×4 redouble)"
+        status: planned
+        notes: >
+          Deferred from task 7.5. Coinche lets the opposing team double
+          the contract value; re-coinche quadruples it. Requires a
+          per-hand 'doubled' flag in the round input and a multiplier
+          in the computeTotal formula.
+
+      # ── DEFERRED POLISH FROM PHASE 8 ───────────────────────────────────────
+
+      - id: 10.33
+        title: "Bridge: rubber structure auto-tracking (game points, honours, above/below line)"
+        status: planned
+        notes: >
+          Deferred from task 8.1. Currently each side enters their
+          computed score per deal. Full rubber bridge tracks: trick score
+          (below the line), bonuses above the line, game/rubber completion,
+          vulnerability state. Requires a computeTotal callback or a
+          dedicated engine that understands the above/below distinction.
+
+      - id: 10.34
+        title: "Mahjong: variant-specific scoring tables (Hong Kong, Japanese riichi)"
+        status: planned
+        notes: >
+          Deferred from task 8.2. Currently a free-form rounds entry.
+          Variant-specific scoring means a yaku/fan table lookup for
+          Japanese riichi (e.g., tanyao=1 han, pinfu=1 han → fu×2^(han+2)×4)
+          or doubles/limit hands for Hong Kong mahjong. Separate game
+          configs per variant is the cleanest approach.
+
+      # ── DEFERRED POLISH FROM PHASE 9 ───────────────────────────────────────
+
+      - id: 10.35
+        title: "Stats (#/stats): per-game winner tracking"
+        status: planned
+        notes: >
+          Deferred from task 9.10. v1 aggregates by player appearance
+          (name seen in any saved game). True winner tracking needs
+          per-engine shape detection to extract who won from each
+          saved state key. Requires a normalised winner field in every
+          engine's persisted state or a per-engine getWinner() export.
+
+      - id: 10.36
+        title: "Tournament mode: auto-pull results from other Scorely game instances"
+        status: planned
+        notes: >
+          Deferred from task 9.11. Currently per-round scores are entered
+          manually. The aspirational flow: finish a game in another tab →
+          Tournament auto-reads that game's winner and awards points.
+          Requires per-engine winner detection (same blocker as 10.35)
+          and a cross-game event bus or polling loop.
+
+      - id: 10.37
+        title: "Game discovery: manual related-games override (config.related: [...])"
+        status: planned
+        notes: >
+          Deferred from task 9.8. Related games are auto-derived from
+          category overlap. If the auto-derived suggestions feel off for
+          a specific game, a config.related: ['game-id', ...] array
+          overrides the algorithm. Low priority — auto-derived is good
+          enough for most games.
+
+      - id: 10.38
+        title: "Custom game builder: multi-field rounds + engine-shape selector"
+        status: planned
+        notes: >
+          Deferred from task 9.13. v1 only generates a basic rounds
+          config (single score field, no formula). Power-user extensions:
+          multiple round fields, computeTotal callback, choice of
+          engine shape (counter, grid, ledger, cricket). Likely ships
+          as an "Advanced" toggle in the #/create-game form.

@@ -313,6 +313,12 @@ Legend:
 - **Win:** more frames at match end
 - **Notes:** break calculator + frame totals.
 
+### 🟢 Kabaddi
+- **Players:** 2 teams of 7
+- **Track:** running team points (raid tags, tackles, all-out bonuses, bonus-line points)
+- **Win:** highest score after two 20-minute halves
+- **Notes:** counter engine; all bonus points (super tackle +2, all-out +2, bonus line +1) are tapped manually by the scorer. No raid-by-raid log. See [`docs/games/kabaddi.md`](games/kabaddi.md).
+
 ### 🟢 Table tennis / Pickleball / Badminton / Volleyball
 - **Players:** 1v1, 2v2, 6v6
 - **Track:** running point total, side-out / rally scoring variants

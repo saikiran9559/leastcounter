@@ -19,6 +19,7 @@
       if (raw) {
         const parsed = JSON.parse(raw);
         if (!parsed.frames) parsed.frames = {};
+        if (parsed.currentPlayerIdx === undefined) parsed.currentPlayerIdx = 0;
         return parsed;
       }
     } catch {}
@@ -26,6 +27,7 @@
       settings: defaultSettings(config),
       players: [],
       frames: {},
+      currentPlayerIdx: 0,
     };
     if (Array.isArray(config.defaultPlayers)) {
       state.players = config.defaultPlayers.map((name) => ({ id: uid(), name }));
@@ -154,6 +156,41 @@
       return totalFor(best.id) > 0 ? best : null;
     }
 
+    // ── Turn helpers ──────────────────────────────────────────────────────────
+
+    /**
+     * Return the index of the player whose turn it is.
+     * If every non-done player is ahead of currentPlayerIdx (can happen after
+     * a reset-game), clamp to the first active player.
+     */
+    function currentTurnIdx() {
+      if (state.players.length === 0) return 0;
+      const idx = state.currentPlayerIdx % state.players.length;
+      return idx;
+    }
+
+    /**
+     * After a player's frame is closed, advance to the next player who hasn't
+     * finished the game.  Wraps around once before giving up (all done).
+     */
+    function advanceTurn() {
+      const n = state.players.length;
+      if (n === 0) return;
+      let next = (currentTurnIdx() + 1) % n;
+      let checked = 0;
+      while (checked < n) {
+        if (!isGameComplete(state.players[next].id)) {
+          state.currentPlayerIdx = next;
+          return;
+        }
+        next = (next + 1) % n;
+        checked++;
+      }
+      // All players done — keep pointer where it is (the winner banner handles it)
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+
     function addPlayer(name) {
       const trimmed = name.trim();
       if (!trimmed) return;
@@ -175,6 +212,10 @@
       }
       state.players = state.players.filter((p) => p.id !== id);
       delete state.frames[id];
+      // Keep pointer in bounds
+      if (state.currentPlayerIdx >= state.players.length) {
+        state.currentPlayerIdx = Math.max(0, state.players.length - 1);
+      }
       persist();
       render();
     }
@@ -207,6 +248,11 @@
 
     function recordThrow(playerId, pins) {
       if (isGameComplete(playerId)) return;
+
+      // Enforce turn order: only the active player may throw
+      const activePid = state.players[currentTurnIdx()]?.id;
+      if (playerId !== activePid) return;
+
       const frames = state.frames[playerId] || (state.frames[playerId] = []);
       const idx = frames.length === 0 ? 0 : frames.length - 1;
       let current = frames[idx];
@@ -217,6 +263,14 @@
       }
       current.throws.push(pins);
       Scorely.playTap();
+
+      // After the throw, check if this player's current frame is now closed.
+      // If so, hand the turn to the next player.
+      const newIdx = frames.length - 1;
+      if (isFrameClosed(frames[newIdx], newIdx)) {
+        advanceTurn();
+      }
+
       persist();
       render();
     }
@@ -224,6 +278,16 @@
     function undoLast(playerId) {
       const frames = framesFor(playerId);
       if (frames.length === 0) return;
+
+      // If this player isn't the current bowler, the undo is restoring their
+      // most-recently-closed frame — hand the turn back to them.
+      const activePid = state.players[currentTurnIdx()]?.id;
+      if (playerId !== activePid) {
+        // Find and restore the turn index to this player
+        const pidIdx = state.players.findIndex((p) => p.id === playerId);
+        if (pidIdx !== -1) state.currentPlayerIdx = pidIdx;
+      }
+
       const last = frames[frames.length - 1];
       last.throws.pop();
       if (last.throws.length === 0) frames.pop();
@@ -234,6 +298,7 @@
     function resetGame() {
       if (!confirm("Reset the game (keep players)?")) return;
       for (const p of state.players) state.frames[p.id] = [];
+      state.currentPlayerIdx = 0;
       persist();
       render();
     }
@@ -243,6 +308,7 @@
       state.players = [];
       state.frames = {};
       state.settings = defaultSettings(config);
+      state.currentPlayerIdx = 0;
       if (Array.isArray(config.defaultPlayers)) {
         state.players = config.defaultPlayers.map((name) => ({ id: uid(), name }));
         for (const p of state.players) state.frames[p.id] = [];
@@ -344,18 +410,24 @@
         return;
       }
 
+      const activePid = state.players[currentTurnIdx()]?.id;
+      const allDone = state.players.every((p) => isGameComplete(p.id));
+
       for (const p of state.players) {
         const frames = framesFor(p.id);
         const done = isGameComplete(p.id);
-        const max = done ? 0 : maxThrowsAllowed(p.id);
+        const isActive = !allDone && p.id === activePid;
+        const max = isActive ? maxThrowsAllowed(p.id) : 0;
 
         const card = document.createElement("div");
-        card.className = "bowling-player" + (done ? " done" : "");
+        card.className = "bowling-player" + (done ? " done" : "") + (isActive ? " bowling-active-turn" : "");
 
         const head = document.createElement("div");
         head.className = "bowling-head";
         head.innerHTML = `
-          <div class="bowling-name">${Scorely.escapeHtml(p.name)}</div>
+          <div class="bowling-name">
+            ${isActive && !done ? `<span class="bowling-turn-arrow" title="Current bowler">🎳</span> ` : ""}${Scorely.escapeHtml(p.name)}
+          </div>
           <div class="bowling-total">${totalFor(p.id)}</div>
         `;
         card.appendChild(head);
@@ -389,30 +461,51 @@
         card.appendChild(strip);
 
         if (!done) {
-          const pad = document.createElement("div");
-          pad.className = "bowling-pad";
-          for (let pin = 0; pin <= 10; pin++) {
-            const btn = document.createElement("button");
-            btn.className = "bowling-pin" + (pin === 10 ? " bowling-pin-strike" : "");
-            btn.textContent = pin === 10 ? "X" : pin === 0 ? "−" : String(pin);
-            btn.disabled = pin > max;
-            btn.onclick = () => recordThrow(p.id, pin);
-            pad.appendChild(btn);
-          }
-          card.appendChild(pad);
+          if (isActive) {
+            // Active player — show live pin pad
+            const pad = document.createElement("div");
+            pad.className = "bowling-pad";
+            for (let pin = 0; pin <= 10; pin++) {
+              const btn = document.createElement("button");
+              btn.className = "bowling-pin" + (pin === 10 ? " bowling-pin-strike" : "");
+              btn.textContent = pin === 10 ? "X" : pin === 0 ? "−" : String(pin);
+              btn.disabled = pin > max;
+              btn.onclick = () => recordThrow(p.id, pin);
+              pad.appendChild(btn);
+            }
+            card.appendChild(pad);
 
-          if (frames.length > 0) {
-            const undo = document.createElement("button");
-            undo.className = "bowling-undo";
-            undo.textContent = "Undo last throw";
-            undo.onclick = () => undoLast(p.id);
-            card.appendChild(undo);
+            if (frames.length > 0) {
+              const undo = document.createElement("button");
+              undo.className = "bowling-undo";
+              undo.textContent = "Undo last throw";
+              undo.onclick = () => undoLast(p.id);
+              card.appendChild(undo);
+            }
+          } else {
+            // Waiting player — show a muted "waiting" notice instead of a pad
+            const waiting = document.createElement("div");
+            waiting.className = "bowling-waiting";
+            waiting.textContent = "Waiting for turn…";
+            card.appendChild(waiting);
+
+            // Still allow undo for the most recent throw if they just bowled
+            // (undo is available for the player who threw last, i.e. whose
+            //  frame was most recently closed — handled by undoLast turning
+            //  the turn back to them)
+            if (frames.length > 0) {
+              const undo = document.createElement("button");
+              undo.className = "bowling-undo";
+              undo.textContent = "Undo last throw";
+              undo.onclick = () => undoLast(p.id);
+              card.appendChild(undo);
+            }
           }
         } else {
-          const done = document.createElement("div");
-          done.className = "bowling-done";
-          done.textContent = `Game complete · ${totalFor(p.id)}`;
-          card.appendChild(done);
+          const doneBadge = document.createElement("div");
+          doneBadge.className = "bowling-done";
+          doneBadge.textContent = `Game complete · ${totalFor(p.id)}`;
+          card.appendChild(doneBadge);
         }
 
         wrap.appendChild(card);

@@ -480,6 +480,13 @@
       render();
     }
 
+    function undoLastRound() {
+      if (state.rounds.length === 0) return;
+      state.rounds.pop();
+      persist();
+      render();
+    }
+
     function resetGame() {
       if (!confirm(`Reset everything — ${nounPluralLower()} and rounds?`)) return;
       state.players = [];
@@ -572,6 +579,7 @@
           <div id="winner-banner" class="${w ? "" : "hidden"}"></div>
           <ul id="status-list"></ul>
           <div class="row" style="margin-top: 14px;">
+            <button id="undo-round" title="Undo last round">↩ Undo</button>
             <button id="download-pdf">Download PDF</button>
             <button id="reset-game" class="danger">Reset game</button>
           </div>
@@ -840,6 +848,11 @@
       });
       container.querySelector("#reset-game").onclick = resetGame;
       container.querySelector("#download-pdf").onclick = () => Scorely.exportPdf(config, state, { totalFor, isOut, winner, getEntry, roundTotal });
+      const undoBtn = container.querySelector("#undo-round");
+      if (undoBtn) {
+        undoBtn.disabled = state.rounds.length === 0;
+        undoBtn.onclick = undoLastRound;
+      }
 
       container.querySelector("#round-form").addEventListener("submit", (e) => {
         e.preventDefault();

@@ -176,6 +176,7 @@
       tennis: Scorely.createTennisInstance,
       bowling: Scorely.createBowlingInstance,
       "darts-cricket": Scorely.createDartsCricketInstance,
+      cricket: Scorely.createCricketInstance,
     };
     const factory = factories[config.shape] || factories.rounds;
     const instance = factory(config.id);

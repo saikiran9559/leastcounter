@@ -15,7 +15,8 @@ The phased implementation plan lives at [`../status.yaml`](../status.yaml) at th
 | [`conventions.md`](conventions.md) | Palette, typography, motion, PWA, storage keys, code conventions |
 | [`hosting.md`](hosting.md) | Cost model — what makes Scorely free and where that would end |
 | [`decisions/`](decisions/) | Architectural decision records (ADRs), numbered |
-| `games/<name>.md` | Per-game design notes (when warranted — none today) |
+| [`games/cricket.md`](games/cricket.md) | Cricket scoreboard design notes |
+| [`games/kabaddi.md`](games/kabaddi.md) | Kabaddi rules, scoring shape, counter-engine mapping |
 | `gotchas.md` | Browser quirks, CDN behaviors, deploy traps (when warranted — none today) |
 
 Files marked "(when warranted)" don't exist until there's something worth saying. Don't create empty placeholders.
@@ -37,3 +38,4 @@ Files marked "(when warranted)" don't exist until there's something worth saying
 - [`0013-bowling-engine.md`](decisions/0013-bowling-engine.md) — sixth sibling engine-bowling.js for 10-frame strike/spare carry-over scoring
 - [`0014-darts-cricket-engine.md`](decisions/0014-darts-cricket-engine.md) — seventh sibling engine-darts-cricket.js for the closing-marks matrix shape
 - [`0015-user-does-the-math-for-domain-heavy-games.md`](decisions/0015-user-does-the-math-for-domain-heavy-games.md) — Chess/Skat/Cricket/Bridge/Mahjong ship as simple rounds configs (user computes per-hand formula); Werewolf explicitly out of scope
+- [`0016-cricket-live-scorer.md`](decisions/0016-cricket-live-scorer.md) — eighth sibling engine-cricket.js for ball-by-ball cricket scoring; full state shape, derived-stats contract, v1 scope limits
