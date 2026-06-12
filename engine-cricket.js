@@ -84,6 +84,8 @@
       innings: [],
       currentInningsIdx: null,
       winner: null,
+      superOverCount: 0,    // how many super overs have been played
+      currentSuperOver: 0,  // 0 = not in a super over; >0 = active super over round number
     };
   }
 
@@ -97,6 +99,8 @@
         if (!Array.isArray(p.innings)) p.innings = [];
         if (!p.settings)             p.settings = { format: "odi", customOvers: 20 };
         if (!("customOvers" in p.settings)) p.settings.customOvers = 20;
+        if (!("superOverCount"   in p)) p.superOverCount   = 0;
+        if (!("currentSuperOver" in p)) p.currentSuperOver = 0;
         // back-compat: upgrade old simplified state
         for (const t of p.teams) {
           if (!Array.isArray(t.players)) t.players = [];
@@ -346,31 +350,30 @@
       return state.innings.filter(i => i.battingTeamId === teamId);
     }
 
-    /* ── winner detection ────────────────────────────────── */
+    /* ── winner detection (regular innings only) ─────────── */
     function computeWinner() {
       if (state.teams.length < 2) return null;
       const [t0, t1] = state.teams;
       const maxI = maxInningsPerTeam(state.settings);
 
-      // All innings must be closed
-      if (state.innings.some(i => !i.closed)) return null;
+      // Only consider regular innings (not super overs)
+      const regularInnings = state.innings.filter(i => !i.superOverNum);
 
-      const i0 = inningsFor(t0.id);
-      const i1 = inningsFor(t1.id);
+      // All regular innings must be closed
+      if (regularInnings.some(i => !i.closed)) return null;
+
+      const i0 = regularInnings.filter(i => i.battingTeamId === t0.id);
+      const i1 = regularInnings.filter(i => i.battingTeamId === t1.id);
 
       if (maxI === 1) {
-        // limited overs: both need exactly 1 innings
         if (i0.length < 1 || i1.length < 1) return null;
         const r0 = inningsSummary(i0[0]).runs;
         const r1 = inningsSummary(i1[0]).runs;
         if (r0 === r1) return { type: "tie" };
         const winner = r0 > r1 ? t0 : t1;
-        const loser = r0 > r1 ? t1 : t0;
         const margin = Math.abs(r0 - r1);
-        // Determine if it's "by wickets" (chasing team won) or "by runs"
-        const chasingInn = i1[0]; // second-batting innings
+        const chasingInn = i1[0];
         if (winner.id === chasingInn.battingTeamId) {
-          // chasing team won — margin = 10 - wickets lost
           const wktsLost = inningsSummary(chasingInn).wickets;
           return { type: "team", teamId: winner.id, byWickets: 10 - wktsLost };
         }
@@ -386,8 +389,24 @@
       return { type: "team", teamId: winner.id, byRuns: Math.abs(total0 - total1) };
     }
 
+    /**
+     * Given two closed super-over innings (in batting order),
+     * return { type:"team", teamId, byRuns?, byWickets? } | { type:"tie" }
+     */
+    function computeSuperOverWinner(firstInn, secondInn) {
+      const r1 = inningsSummary(firstInn).runs;
+      const r2 = inningsSummary(secondInn).runs;
+      if (r1 === r2) return { type: "tie" };
+      if (r2 > r1) {
+        // chasing team won
+        const wktsLost = inningsSummary(secondInn).wickets;
+        return { type: "team", teamId: secondInn.battingTeamId, byWickets: 2 - wktsLost };
+      }
+      return { type: "team", teamId: firstInn.battingTeamId, byRuns: r1 - r2 };
+    }
+
     /* ── start a new innings ─────────────────────────────── */
-    function startInnings(battingTeamId, openingPair, firstBowlerId) {
+    function startInnings(battingTeamId, openingPair, firstBowlerId, superOverNum) {
       const bowlingTeamId = state.teams.find(t => t.id !== battingTeamId)?.id;
       const inn = {
         id: uid(),
@@ -402,6 +421,7 @@
         bowling: { currentBowlerId: firstBowlerId || null },
         closed: false,
         closeReason: null,
+        superOverNum: superOverNum || 0,  // 0 = regular innings; >0 = super over round
       };
       state.innings.push(inn);
       state.currentInningsIdx = state.innings.length - 1;
@@ -419,19 +439,52 @@
       inn.closeReason = reason;
       state.currentInningsIdx = null;
 
+      // ── Super over path ──────────────────────────────────
+      if (inn.superOverNum > 0) {
+        const soNum = inn.superOverNum;
+        // Collect the two super-over innings for this round (both must now be closed)
+        const soInnings = state.innings.filter(i => i.superOverNum === soNum && i.closed);
+        if (soInnings.length === 2) {
+          // Both sides have batted — evaluate the super over result
+          const soWinner = computeSuperOverWinner(soInnings[0], soInnings[1]);
+          if (soWinner && soWinner.type !== "tie") {
+            state.winner = soWinner;
+            state.phase = "complete";
+            if (soWinner.teamId !== lastWinnerId) {
+              Scorely.fireConfetti();
+              lastWinnerId = soWinner.teamId;
+            }
+          } else {
+            // Super over is also tied — reset active SO tracker, offer another
+            state.currentSuperOver = 0;
+            state.phase = "superOverTie";
+          }
+        } else {
+          // First super-over innings done — prompt second team to bat
+          state.phase = "inningsDone";
+        }
+        persist();
+        render();
+        return;
+      }
+
+      // ── Regular innings path ─────────────────────────────
       // Check winner
       const w = computeWinner();
       if (w) {
-        state.winner = w;
-        state.phase = "complete";
-        if (w.teamId !== lastWinnerId) {
-          Scorely.fireConfetti();
-          lastWinnerId = w.teamId;
+        if (w.type === "tie") {
+          // Limited-overs tie → offer super over
+          state.winner = { type: "tie" };
+          state.phase = "superOverOffer";
+        } else {
+          state.winner = w;
+          state.phase = "complete";
+          if (w.teamId !== lastWinnerId) {
+            Scorely.fireConfetti();
+            lastWinnerId = w.teamId;
+          }
         }
       } else {
-        // More innings to play? Move to setup for next innings if we're not in setup
-        // For limited overs: prompt to start second innings
-        // For test: may need to re-enter batting-order
         state.phase = "inningsDone";
       }
       persist();
@@ -502,6 +555,30 @@
 
       // Check auto-close conditions
       const summary = inningsSummary(inn);
+
+      // Super over: 1 over, 2 wickets max (only 2 batters)
+      if (inn.superOverNum > 0) {
+        const soNum = inn.superOverNum;
+        const allOut = summary.wickets >= 2;
+        const oversUp = summary.legalBalls >= 6;
+
+        // Target chased? (second super-over innings)
+        const soInnings = state.innings.filter(i => i.superOverNum === soNum);
+        let targetChased = false;
+        if (soInnings.length === 2 && soInnings[1].id === inn.id) {
+          const target = inningsSummary(soInnings[0]).runs + 1;
+          if (summary.runs >= target) targetChased = true;
+        }
+
+        if (targetChased) { closeInnings("target-chased"); return; }
+        if (allOut)        { closeInnings("all-out");       return; }
+        if (oversUp)       { closeInnings("overs-complete"); return; }
+
+        persist();
+        render();
+        return;
+      }
+
       const limit = currentOversLimit();
       const allOut = summary.wickets >= 10;
       const oversUp = limit !== null && summary.legalBalls >= limit * 6;
@@ -585,6 +662,11 @@
       state.toss = null;
       state.winner = null;
       state.phase = "setup";
+      state.superOverCount = 0;
+      state.currentSuperOver = 0;
+      delete state._superOverFirstBatterId;
+      delete state._soSelections;
+      delete state._firstBattingTeamId;
     }
 
     /* ── reset helpers ───────────────────────────────────── */
@@ -627,14 +709,28 @@
 
       const root = container.querySelector("#cricket-root");
 
-      if (state.phase === "setup" || state.phase === "inningsDone") {
+      if (state.phase === "setup") {
         renderSetupPhase(root);
+      } else if (state.phase === "inningsDone") {
+        // During an active super over, show the simpler "start 2nd innings" prompt
+        if (state.currentSuperOver > 0) {
+          const nextTeam = computeNextBattingTeam();
+          if (nextTeam) {
+            renderSuperOverSecondInnings(root, nextTeam);
+          } else {
+            renderSetupPhase(root);
+          }
+        } else {
+          renderSetupPhase(root);
+        }
       } else if (state.phase === "toss") {
         renderTossPhase(root);
       } else if (state.phase === "batting") {
         renderBattingPhase(root);
       } else if (state.phase === "complete") {
         renderCompletePhase(root);
+      } else if (state.phase === "superOverOffer" || state.phase === "superOverTie") {
+        renderSuperOverOffer(root);
       } else {
         renderSetupPhase(root);
       }
@@ -718,9 +814,26 @@
 
     function computeNextBattingTeam() {
       if (state.teams.length < 2) return null;
+
+      // ── Super over path ──────────────────────────────────
+      if (state.currentSuperOver > 0) {
+        const soNum = state.currentSuperOver;
+        const soInnings = state.innings.filter(i => i.superOverNum === soNum);
+        const closedSo = soInnings.filter(i => i.closed);
+        if (closedSo.length === 0) {
+          // Neither has batted; first batter is whoever the offer decided
+          return teamById(state._superOverFirstBatterId) || state.teams[0];
+        }
+        if (closedSo.length === 1) {
+          // First team done — other team bats
+          return state.teams.find(t => t.id !== closedSo[0].battingTeamId) || null;
+        }
+        return null;
+      }
+
+      // ── Regular innings path ─────────────────────────────
       const maxI = maxInningsPerTeam(state.settings);
 
-      // If no innings played yet, respect toss or default to first team
       if (state.innings.length === 0) {
         if (state._firstBattingTeamId) {
           return teamById(state._firstBattingTeamId) || state.teams[0];
@@ -728,19 +841,21 @@
         return state.teams[0];
       }
 
-      // Determine which team should bat next by alternating from last batting team
-      const closedInnings = state.innings.filter(i => i.closed);
-      if (!closedInnings.length) return null;
+      // Only count regular innings (superOverNum === 0) for rotation
+      const regularClosed = state.innings.filter(i => i.closed && !i.superOverNum);
+      if (!regularClosed.length) return null;
 
-      const lastBattingId = closedInnings[closedInnings.length - 1].battingTeamId;
+      const lastBattingId = regularClosed[regularClosed.length - 1].battingTeamId;
       const nextTeam = state.teams.find(t => t.id !== lastBattingId);
 
       if (!nextTeam) return null;
-      if (inningsFor(nextTeam.id).length >= maxI) {
-        // The other team may need a follow-on innings (Test)
+
+      const regularInningsFor = (teamId) =>
+        state.innings.filter(i => !i.superOverNum && i.battingTeamId === teamId);
+
+      if (regularInningsFor(nextTeam.id).length >= maxI) {
         const otherTeam = teamById(lastBattingId);
-        if (otherTeam && inningsFor(otherTeam.id).length < maxI) return otherTeam;
-        // Both exhausted — declare winner
+        if (otherTeam && regularInningsFor(otherTeam.id).length < maxI) return otherTeam;
         const w = computeWinner();
         if (w) {
           state.winner = w;
@@ -884,117 +999,38 @@
     }
 
     /* ────────────────────────────────────────────────────────
-     *  TOSS PHASE  — three-step: call → flip → result
+     *  TOSS PHASE  — two-step: flip → record result
      *
-     *  Step 1 (calling): one team secretly picks Heads/Tails.
-     *                    Their choice is hidden once confirmed.
-     *  Step 2 (flipping): coin animates, face revealed.
-     *  Step 3 (result):   winner announced based on call vs face.
-     *                     Winner picks Bat/Field, then Confirm.
-     *  "Flip Again" resets back to step 1 at any point.
+     *  Step 1 (flip): decorative coin animation while teams
+     *                 flip their physical coin.
+     *  Step 2 (result): record what happened — coin face,
+     *                   toss winner, and what they elect.
      * ──────────────────────────────────────────────────────── */
 
     function renderTossPhase(root) {
-      /* Local toss state — lives only for the duration of this
-         render cycle; nothing is written to `state` until Confirm. */
       const toss = {
-        callingTeamId: state.teams[0].id,  // which team is calling
-        call: null,        // "heads" | "tails"
-        face: null,        // "heads" | "tails"  (coin result)
-        winnerId: null,    // resolved after flip
-        step: "calling",   // "calling" | "flipping" | "result"
+        step: "flip",      // "flip" | "result"
+        face: null,        // "heads" | "tails"
+        winnerId: state.teams[0].id,
       };
 
       function buildTossCard() {
         const [t0, t1] = state.teams;
-        const callingTeam = teamById(toss.callingTeamId);
 
-        /* ── Step 1: Calling ──────────────────────────────── */
-        if (toss.step === "calling") {
+        /* ── Step 1: Flip ─────────────────────────────────── */
+        if (toss.step === "flip") {
           root.innerHTML = `
             <section class="card" id="toss-card">
-              <h2>🪙 Toss — Call It!</h2>
+              <h2>🪙 Toss</h2>
 
               <div class="cricket-toss-arena">
                 <div class="cricket-toss-teams">
-                  <span class="cricket-toss-team-label" id="toss-label-t0">${Scorely.escapeHtml(t0.name)}</span>
+                  <span class="cricket-toss-team-label">${Scorely.escapeHtml(t0.name)}</span>
                   <span class="cricket-toss-vs">vs</span>
-                  <span class="cricket-toss-team-label" id="toss-label-t1">${Scorely.escapeHtml(t1.name)}</span>
+                  <span class="cricket-toss-team-label">${Scorely.escapeHtml(t1.name)}</span>
                 </div>
 
                 <div class="cricket-coin-wrap">
-                  <div class="cricket-coin">
-                    <div class="cricket-coin-face cricket-coin-heads">🏏</div>
-                    <div class="cricket-coin-face cricket-coin-tails">⚾</div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="cricket-toss-call-section">
-                <div class="cricket-form-row">
-                  <label>Who is calling?
-                    <select id="calling-team-sel" class="cricket-select">
-                      ${state.teams.map(t =>
-                        `<option value="${t.id}" ${t.id === toss.callingTeamId ? "selected" : ""}>${Scorely.escapeHtml(t.name)}</option>`
-                      ).join("")}
-                    </select>
-                  </label>
-                </div>
-
-                <p class="cricket-toss-hint">
-                  📵 Hand the phone to <strong>${Scorely.escapeHtml(callingTeam.name)}</strong> — they will secretly make their call.
-                </p>
-
-                <div class="cricket-toss-call-btns">
-                  <button class="cricket-call-btn" id="call-heads">
-                    <span class="cricket-call-icon">🏏</span>
-                    <span>Heads</span>
-                  </button>
-                  <button class="cricket-call-btn" id="call-tails">
-                    <span class="cricket-call-icon">⚾</span>
-                    <span>Tails</span>
-                  </button>
-                </div>
-              </div>
-            </section>
-          `;
-
-          root.querySelector("#calling-team-sel").addEventListener("change", e => {
-            toss.callingTeamId = e.target.value;
-            buildTossCard();
-          });
-
-          root.querySelector("#call-heads").addEventListener("click", () => {
-            toss.call = "heads";
-            toss.step = "flipping";
-            buildTossCard();
-          });
-          root.querySelector("#call-tails").addEventListener("click", () => {
-            toss.call = "tails";
-            toss.step = "flipping";
-            buildTossCard();
-          });
-          return;
-        }
-
-        /* ── Step 2: Flipping ─────────────────────────────── */
-        if (toss.step === "flipping") {
-          root.innerHTML = `
-            <section class="card" id="toss-card">
-              <h2>🪙 Toss — Flip!</h2>
-
-              <div class="cricket-toss-arena">
-                <div class="cricket-toss-teams">
-                  <span class="cricket-toss-team-label" id="toss-label-t0">${Scorely.escapeHtml(t0.name)}</span>
-                  <span class="cricket-toss-vs">vs</span>
-                  <span class="cricket-toss-team-label" id="toss-label-t1">${Scorely.escapeHtml(t1.name)}</span>
-                </div>
-
-                <div class="cricket-toss-called-badge">
-                  🤫 Call is locked in — nobody is telling!
-                </div>
-
-                <div class="cricket-coin-wrap" id="coin-wrap">
                   <div class="cricket-coin" id="coin">
                     <div class="cricket-coin-face cricket-coin-heads">🏏</div>
                     <div class="cricket-coin-face cricket-coin-tails">⚾</div>
@@ -1005,20 +1041,8 @@
                   🪙 Flip Coin
                 </button>
               </div>
-
-              <div class="cricket-toss-secondary-row">
-                <button id="toss-restart-btn" class="cricket-toss-restart-btn">↩ Start Over</button>
-              </div>
             </section>
           `;
-
-          root.querySelector("#toss-restart-btn").addEventListener("click", () => {
-            toss.call = null;
-            toss.face = null;
-            toss.winnerId = null;
-            toss.step = "calling";
-            buildTossCard();
-          });
 
           const flipBtn = root.querySelector("#flip-coin-btn");
           const coin    = root.querySelector("#coin");
@@ -1027,20 +1051,14 @@
             if (flipBtn.disabled) return;
             flipBtn.disabled = true;
             flipBtn.textContent = "Flipping…";
-
-            // Randomly determine the coin face
-            toss.face = Math.random() < 0.5 ? "heads" : "tails";
-            toss.winnerId = toss.face === toss.call
-              ? toss.callingTeamId
-              : state.teams.find(t => t.id !== toss.callingTeamId).id;
-
             coin.classList.add("cricket-coin-spinning");
 
             setTimeout(() => {
+              const landedFace = Math.random() < 0.5 ? "heads" : "tails";
               coin.classList.remove("cricket-coin-spinning");
-              coin.classList.add("cricket-coin-landed");
+              coin.classList.add(`cricket-coin-landed-${landedFace}`);
+              toss.face = landedFace;
               Scorely.playTap();
-              // Brief pause so they can see the coin landed, then show result
               setTimeout(() => {
                 toss.step = "result";
                 buildTossCard();
@@ -1050,51 +1068,55 @@
           return;
         }
 
-        /* ── Step 3: Result ───────────────────────────────── */
+        /* ── Step 2: Record result ────────────────────────── */
         if (toss.step === "result") {
-          const winner    = teamById(toss.winnerId);
-          const callerTeam = teamById(toss.callingTeamId);
-          const callerWon  = toss.winnerId === toss.callingTeamId;
-          const faceLabel  = toss.face === "heads" ? "Heads 🏏" : "Tails ⚾";
-          const callLabel  = toss.call === "heads" ? "Heads 🏏" : "Tails ⚾";
-
           root.innerHTML = `
             <section class="card" id="toss-card">
-              <h2>🪙 Toss — Result</h2>
+              <h2>🪙 Toss Result</h2>
 
               <div class="cricket-toss-arena">
                 <div class="cricket-toss-teams">
-                  <span class="cricket-toss-team-label ${toss.winnerId === t0.id ? "toss-winner-hl" : ""}">${Scorely.escapeHtml(t0.name)}</span>
+                  <span class="cricket-toss-team-label">${Scorely.escapeHtml(t0.name)}</span>
                   <span class="cricket-toss-vs">vs</span>
-                  <span class="cricket-toss-team-label ${toss.winnerId === t1.id ? "toss-winner-hl" : ""}">${Scorely.escapeHtml(t1.name)}</span>
+                  <span class="cricket-toss-team-label">${Scorely.escapeHtml(t1.name)}</span>
                 </div>
 
                 <div class="cricket-coin-wrap">
-                  <div class="cricket-coin cricket-coin-landed">
+                  <div class="cricket-coin cricket-coin-landed-${toss.face || "heads"}">
                     <div class="cricket-coin-face cricket-coin-heads">🏏</div>
                     <div class="cricket-coin-face cricket-coin-tails">⚾</div>
                   </div>
                 </div>
-
-                <div class="cricket-toss-reveal-row">
-                  <div class="cricket-toss-reveal-item">
-                    <span class="cricket-toss-reveal-label">Coin landed</span>
-                    <span class="cricket-toss-reveal-value">${faceLabel}</span>
-                  </div>
-                  <div class="cricket-toss-reveal-item">
-                    <span class="cricket-toss-reveal-label">${Scorely.escapeHtml(callerTeam.name)} called</span>
-                    <span class="cricket-toss-reveal-value">${callLabel}</span>
-                  </div>
-                </div>
               </div>
 
-              <div class="cricket-toss-result-banner cricket-toss-panel-appear">
-                🎉 ${Scorely.escapeHtml(winner.name)} wins the toss!
-              </div>
-
-              <div class="cricket-toss-form" style="margin-top:18px;">
+              <div class="cricket-toss-form" style="margin-top:6px;">
                 <div class="cricket-form-row">
-                  <label>${Scorely.escapeHtml(winner.name)} elects to…
+                  <label>Coin landed on
+                    <div class="cricket-toss-call-btns" id="face-btns" style="margin-top:8px;">
+                      <button class="cricket-call-btn" id="face-heads">
+                        <span class="cricket-call-icon">🏏</span>
+                        <span>Heads</span>
+                      </button>
+                      <button class="cricket-call-btn" id="face-tails">
+                        <span class="cricket-call-icon">⚾</span>
+                        <span>Tails</span>
+                      </button>
+                    </div>
+                  </label>
+                </div>
+
+                <div class="cricket-form-row">
+                  <label>Who won the toss?
+                    <select id="toss-winner-sel" class="cricket-select">
+                      ${state.teams.map(t =>
+                        `<option value="${t.id}">${Scorely.escapeHtml(t.name)}</option>`
+                      ).join("")}
+                    </select>
+                  </label>
+                </div>
+
+                <div class="cricket-form-row" id="elect-row" style="display:none;">
+                  <label id="elect-label">— elects to…
                     <div class="cricket-radio-row">
                       <label class="cricket-radio-opt">
                         <input type="radio" name="elected" value="bat" checked /> 🏏 Bat
@@ -1108,28 +1130,64 @@
 
                 <div class="cricket-toss-action-row">
                   <button id="toss-restart-btn" class="cricket-toss-restart-btn">🔄 Flip Again</button>
-                  <button id="confirm-toss-btn" class="cricket-start-btn" style="flex:1;">
-                    Confirm & Pick XI →
+                  <button id="confirm-toss-btn" class="cricket-start-btn" style="flex:1;" disabled>
+                    Confirm →
                   </button>
                 </div>
               </div>
             </section>
           `;
 
+          const electRow    = root.querySelector("#elect-row");
+          const electLabel  = root.querySelector("#elect-label");
+          const confirmBtn  = root.querySelector("#confirm-toss-btn");
+          const winnerSel   = root.querySelector("#toss-winner-sel");
+
+          function updateElectRow() {
+            const winner = teamById(winnerSel.value);
+            if (toss.face && winner) {
+              electRow.style.display = "";
+              electLabel.childNodes[0].textContent = `${winner.name} elects to…`;
+              confirmBtn.disabled = false;
+            } else {
+              electRow.style.display = "none";
+              confirmBtn.disabled = true;
+            }
+          }
+
+          root.querySelector("#face-heads").addEventListener("click", () => {
+            toss.face = "heads";
+            root.querySelector("#face-heads").classList.add("cricket-call-btn-selected");
+            root.querySelector("#face-tails").classList.remove("cricket-call-btn-selected");
+            updateElectRow();
+          });
+          root.querySelector("#face-tails").addEventListener("click", () => {
+            toss.face = "tails";
+            root.querySelector("#face-tails").classList.add("cricket-call-btn-selected");
+            root.querySelector("#face-heads").classList.remove("cricket-call-btn-selected");
+            updateElectRow();
+          });
+          winnerSel.addEventListener("change", updateElectRow);
+
+          // Pre-select and show elect row if coin already determined the face
+          if (toss.face) {
+            root.querySelector(`#face-${toss.face}`).classList.add("cricket-call-btn-selected");
+            updateElectRow();
+          }
+
           root.querySelector("#toss-restart-btn").addEventListener("click", () => {
-            toss.call = null;
+            toss.step = "flip";
             toss.face = null;
-            toss.winnerId = null;
-            toss.step = "calling";
             buildTossCard();
           });
 
-          root.querySelector("#confirm-toss-btn").addEventListener("click", () => {
-            const elected = root.querySelector("input[name='elected']:checked").value;
-            state.toss    = { winnerId: toss.winnerId, elected };
+          confirmBtn.addEventListener("click", () => {
+            const winnerId = winnerSel.value;
+            const elected  = root.querySelector("input[name='elected']:checked").value;
+            state.toss     = { winnerId, elected };
 
-            const otherTeam = state.teams.find(t => t.id !== toss.winnerId);
-            const battingTeamId = elected === "bat" ? toss.winnerId : otherTeam.id;
+            const otherTeam = state.teams.find(t => t.id !== winnerId);
+            const battingTeamId = elected === "bat" ? winnerId : otherTeam.id;
 
             state.phase = "inningsDone";
             state._firstBattingTeamId = battingTeamId;
@@ -1153,27 +1211,59 @@
       const battingTeam = teamById(inn.battingTeamId);
       const bowlingTeam = teamById(inn.bowlingTeamId);
       const summary = inningsSummary(inn);
-      const limit = currentOversLimit();
-      const inningsIdx = state.innings.indexOf(inn);
-      const inningsLabel = inningsIdx === 0 ? "1st Innings" : "2nd Innings";
+      const isSuperOver = inn.superOverNum > 0;
+      const limit = isSuperOver ? 1 : currentOversLimit();
 
-      // Target info (2nd innings)
+      // Innings label
+      let inningsLabel;
+      if (isSuperOver) {
+        const soNum = inn.superOverNum;
+        const soInnings = state.innings.filter(i => i.superOverNum === soNum);
+        const soIdx = soInnings.indexOf(inn);
+        inningsLabel = `Super Over ${soNum > 1 ? "#" + soNum + " — " : "— "}${soIdx === 0 ? "1st" : "2nd"} bat`;
+      } else {
+        const regularIdx = state.innings.filter(i => !i.superOverNum).indexOf(inn);
+        inningsLabel = regularIdx === 0 ? "1st Innings" : "2nd Innings";
+      }
+
+      // Target info
       let targetLine = "";
-      if (inningsIdx > 0 && state.innings.length >= 1) {
-        const firstInns = state.innings[0];
-        const target = inningsSummary(firstInns).runs + 1;
-        const needed = target - summary.runs;
-        const ballsLeft = limit !== null ? (limit * 6 - summary.legalBalls) : null;
-        const oversLeft = ballsLeft !== null ? oversFromBalls(ballsLeft) : "∞";
-        const rrr = ballsLeft !== null && ballsLeft > 0
-          ? ((needed / ballsLeft) * 6).toFixed(2) : "—";
-        targetLine = `
-          <div class="cricket-target-bar">
-            <span>Target <strong>${target}</strong></span>
-            <span>Need <strong>${Math.max(0, needed)}</strong> off ${oversLeft} ov</span>
-            <span>RRR <strong>${rrr}</strong></span>
-          </div>
-        `;
+      if (isSuperOver) {
+        const soNum = inn.superOverNum;
+        const soInnings = state.innings.filter(i => i.superOverNum === soNum);
+        if (soInnings.length === 2 && soInnings[1].id === inn.id) {
+          const target = inningsSummary(soInnings[0]).runs + 1;
+          const needed = target - summary.runs;
+          const ballsLeft = 6 - summary.legalBalls;
+          const oversLeft = oversFromBalls(ballsLeft);
+          const rrr = ballsLeft > 0 ? ((needed / ballsLeft) * 6).toFixed(2) : "—";
+          targetLine = `
+            <div class="cricket-target-bar">
+              <span>Super Over Target <strong>${target}</strong></span>
+              <span>Need <strong>${Math.max(0, needed)}</strong> off ${oversLeft} ov</span>
+              <span>RRR <strong>${rrr}</strong></span>
+            </div>
+          `;
+        }
+      } else {
+        const regularInnings = state.innings.filter(i => !i.superOverNum);
+        const inningsIdx = regularInnings.indexOf(inn);
+        if (inningsIdx > 0 && regularInnings.length >= 1) {
+          const firstInns = regularInnings[0];
+          const target = inningsSummary(firstInns).runs + 1;
+          const needed = target - summary.runs;
+          const ballsLeft = limit !== null ? (limit * 6 - summary.legalBalls) : null;
+          const oversLeft = ballsLeft !== null ? oversFromBalls(ballsLeft) : "∞";
+          const rrr = ballsLeft !== null && ballsLeft > 0
+            ? ((needed / ballsLeft) * 6).toFixed(2) : "—";
+          targetLine = `
+            <div class="cricket-target-bar">
+              <span>Target <strong>${target}</strong></span>
+              <span>Need <strong>${Math.max(0, needed)}</strong> off ${oversLeft} ov</span>
+              <span>RRR <strong>${rrr}</strong></span>
+            </div>
+          `;
+        }
       }
 
       // New bowler needed?
@@ -1187,8 +1277,11 @@
       // Determine if a new batter is needed (on-strike is null after wicket)
       const newBatterNeeded = inn.batting.onStrikeId === null || inn.batting.nonStrikeId === null;
 
+      const maxWickets = isSuperOver ? 2 : 10;
+
       root.innerHTML = `
-        <section class="card cricket-live-header">
+        <section class="card cricket-live-header${isSuperOver ? " cricket-super-over-header" : ""}">
+          ${isSuperOver ? `<div class="cricket-super-over-badge">⚡ Super Over</div>` : ""}
           <div class="cricket-live-teams">
             <div class="cricket-live-team-name">${Scorely.escapeHtml(battingTeam?.name || "—")}</div>
             <div class="cricket-live-score">
@@ -1431,8 +1524,9 @@
       const wicketBtn = document.createElement("button");
       wicketBtn.className = "cricket-wicket-btn";
       const wkts = inningsSummary(inn).wickets;
-      wicketBtn.textContent = `🎯 Wicket (${wkts}/10)`;
-      wicketBtn.disabled = wkts >= 10;
+      const wktMax = inn.superOverNum > 0 ? 2 : 10;
+      wicketBtn.textContent = `🎯 Wicket (${wkts}/${wktMax})`;
+      wicketBtn.disabled = wkts >= wktMax;
       wicketBtn.addEventListener("click", () => openWicketDialog(inn));
       el.appendChild(wicketBtn);
 
@@ -1465,17 +1559,26 @@
 
     /* ── wicket dialog ───────────────────────────────────── */
 
+    // Dismissal types where only the on-strike batter can be dismissed
+    const ON_STRIKE_ONLY = new Set(["Bowled", "LBW", "Stumped", "Hit Wicket", "Handled Ball", "Obstructed"]);
+    // Dismissal types where bat runs on the same delivery are not possible
+    const NO_BAT_RUNS = new Set(["Bowled", "LBW", "Stumped", "Hit Wicket", "Handled Ball", "Obstructed"]);
+    // Dismissal types where a fielder name is relevant to show
+    const FIELDER_RELEVANT = new Set(["Caught", "Run Out", "Stumped"]);
+
     function openWicketDialog(inn) {
       const battingTeam = teamById(inn.battingTeamId);
       const bowlingTeam = teamById(inn.bowlingTeamId);
-      const stats = batterStats(inn.balls);
 
       // Remaining batters (not dismissed, not currently batting)
       const dismissed = new Set(
         inn.balls.filter(b => b.wicket).map(b => b.wicket.batterId)
       );
       const currentBatters = new Set([inn.batting.onStrikeId, inn.batting.nonStrikeId].filter(Boolean));
-      const remaining = (battingTeam?.players || []).filter(p => !dismissed.has(p.id) && !currentBatters.has(p.id));
+      // Super over: only 2 batters, no replacements after dismissal
+      const remaining = inn.superOverNum > 0
+        ? []
+        : (battingTeam?.players || []).filter(p => !dismissed.has(p.id) && !currentBatters.has(p.id));
 
       const backdrop = document.createElement("div");
       backdrop.className = "modal-backdrop";
@@ -1485,17 +1588,6 @@
           <h2>🎯 Wicket</h2>
 
           <div class="cricket-form-row">
-            <label>Batter dismissed
-              <select id="wk-batter" class="cricket-select">
-                ${[inn.batting.onStrikeId, inn.batting.nonStrikeId].filter(Boolean).map(id => {
-                  const p = playerById(id);
-                  return `<option value="${id}">${Scorely.escapeHtml(p?.name || id)}</option>`;
-                }).join("")}
-              </select>
-            </label>
-          </div>
-
-          <div class="cricket-form-row">
             <label>Dismissal type
               <select id="wk-type" class="cricket-select">
                 ${DISMISSAL_TYPES.map(t => `<option value="${t}">${t}</option>`).join("")}
@@ -1503,7 +1595,15 @@
             </label>
           </div>
 
-          <div class="cricket-form-row">
+          <div class="cricket-form-row" id="wk-batter-row">
+            <label>Batter dismissed
+              <select id="wk-batter" class="cricket-select">
+                <option value="${inn.batting.onStrikeId}">${Scorely.escapeHtml(playerById(inn.batting.onStrikeId)?.name || "On Strike")}</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="cricket-form-row" id="wk-fielder-row">
             <label>Fielder (optional)
               <select id="wk-fielder" class="cricket-select">
                 <option value="">— None —</option>
@@ -1512,7 +1612,7 @@
             </label>
           </div>
 
-          <div class="cricket-form-row">
+          <div class="cricket-form-row" id="wk-runs-row">
             <label>Runs on this delivery
               <select id="wk-runs" class="cricket-select">
                 ${[0, 1, 2, 3, 4, 5, 6].map(r => `<option value="${r}">${r}</option>`).join("")}
@@ -1541,14 +1641,52 @@
         setTimeout(() => backdrop.remove(), 200);
       };
 
+      const typeSel      = backdrop.querySelector("#wk-type");
+      const batterSel    = backdrop.querySelector("#wk-batter");
+      const batterRow    = backdrop.querySelector("#wk-batter-row");
+      const fielderRow   = backdrop.querySelector("#wk-fielder-row");
+      const runsRow      = backdrop.querySelector("#wk-runs-row");
+      const runsSel      = backdrop.querySelector("#wk-runs");
+
+      function updateDialogForType() {
+        const type = typeSel.value;
+
+        // Batter options: on-strike-only dismissals can only dismiss the batter facing
+        if (ON_STRIKE_ONLY.has(type)) {
+          batterSel.innerHTML = `<option value="${inn.batting.onStrikeId}">${Scorely.escapeHtml(playerById(inn.batting.onStrikeId)?.name || "On Strike")}</option>`;
+        } else {
+          // Caught / Run Out can dismiss either batter
+          batterSel.innerHTML = [inn.batting.onStrikeId, inn.batting.nonStrikeId]
+            .filter(Boolean)
+            .map(id => {
+              const p = playerById(id);
+              return `<option value="${id}">${Scorely.escapeHtml(p?.name || id)}</option>`;
+            }).join("");
+        }
+
+        // Runs: not applicable for most dismissals — lock to 0
+        if (NO_BAT_RUNS.has(type)) {
+          runsSel.value = "0";
+          runsRow.style.display = "none";
+        } else {
+          runsRow.style.display = "";
+        }
+
+        // Fielder: only relevant for Caught / Run Out / Stumped
+        fielderRow.style.display = FIELDER_RELEVANT.has(type) ? "" : "none";
+      }
+
+      typeSel.addEventListener("change", updateDialogForType);
+      updateDialogForType();
+
       backdrop.querySelector("#wk-close").addEventListener("click", close);
       backdrop.addEventListener("click", e => { if (e.target === backdrop) close(); });
 
       backdrop.querySelector("#wk-confirm").addEventListener("click", () => {
-        const batterId = backdrop.querySelector("#wk-batter").value;
-        const type = backdrop.querySelector("#wk-type").value;
+        const batterId = batterSel.value;
+        const type = typeSel.value;
         const fielderId = backdrop.querySelector("#wk-fielder").value || null;
-        const runs = parseInt(backdrop.querySelector("#wk-runs").value, 10) || 0;
+        const runs = NO_BAT_RUNS.has(type) ? 0 : (parseInt(runsSel.value, 10) || 0);
         const nextBatterId = backdrop.querySelector("#wk-next-batter").value || null;
 
         recordBall({
@@ -1722,19 +1860,254 @@
     }
 
     /* ────────────────────────────────────────────────────────
+     *  SUPER OVER OFFER PHASE
+     *  Shown when:
+     *    phase === "superOverOffer" — regular match tied → offer first super over
+     *    phase === "superOverTie"   — a super over itself tied → offer another
+     * ──────────────────────────────────────────────────────── */
+
+    function renderSuperOverOffer(root) {
+      const isTieAgain = state.phase === "superOverTie";
+      const soRoundJustEnded = state.innings.filter(i => i.superOverNum > 0 && i.closed).length / 2;
+      const nextSoNum = (state.superOverCount || 0) + 1;
+
+      const [t0, t1] = state.teams;
+
+      // Build the batting-order info for the super over card
+      const selectedBatters = { [t0.id]: [], [t1.id]: [] };
+      const selectedBowlers = { [t0.id]: null, [t1.id]: null };
+
+      // Who bats first in the super over? Chasing team from the last regular
+      // innings bats first (standard ICC rule). Default to t0 if unclear.
+      const regularInnings = state.innings.filter(i => !i.superOverNum);
+      const lastRegularInn = regularInnings[regularInnings.length - 1];
+      const defaultFirstBatter = lastRegularInn ? lastRegularInn.battingTeamId : t0.id;
+
+      // The team that set the target (batted first in last regular innings)
+      // chooses their bowler while the chasing team bats first.
+      // In subsequent super overs, keep the same batting order.
+      let firstBatTeamId = defaultFirstBatter;
+      // If there was a previous super over, preserve order from that super over
+      const prevSoInnings = state.innings.filter(i => i.superOverNum > 0 && i.superOverNum === soRoundJustEnded);
+      if (prevSoInnings.length >= 1) {
+        firstBatTeamId = prevSoInnings[0].battingTeamId;
+      }
+      const secondBatTeamId = state.teams.find(t => t.id !== firstBatTeamId)?.id;
+
+      function buildCard() {
+        root.innerHTML = `
+          <section class="card cricket-super-over-offer-card">
+            <div class="cricket-super-over-badge">⚡ Super Over ${nextSoNum > 1 ? "#" + nextSoNum : ""}</div>
+            <h2>${isTieAgain ? "Super Over Tied Again!" : "Match Tied!"}</h2>
+            <p class="cricket-prompt-label">
+              ${isTieAgain
+                ? `Super Over ${soRoundJustEnded} was also tied. Play another?`
+                : "The match is tied. Resolve with a Super Over (1 over, 2 wickets per side)?"}
+            </p>
+
+            ${isTieAgain ? renderSuperOverHistory() : ""}
+
+            <div class="cricket-so-teams-grid" id="so-setup-grid"></div>
+
+            <div class="cricket-so-action-row">
+              <button id="so-decline-btn" class="cricket-toss-restart-btn">
+                ${isTieAgain ? "🤝 Declare Tied" : "🤝 Accept Tie"}
+              </button>
+              <button id="so-start-btn" class="cricket-start-btn" style="flex:1;" disabled>
+                ⚡ Start Super Over ${nextSoNum > 1 ? "#" + nextSoNum : ""}
+              </button>
+            </div>
+          </section>
+
+          ${renderMiniScoreboard()}
+        `;
+
+        renderSuperOverSetupGrid(root.querySelector("#so-setup-grid"), firstBatTeamId, secondBatTeamId);
+
+        root.querySelector("#so-decline-btn").addEventListener("click", () => {
+          state.winner = { type: "tie" };
+          state.phase = "complete";
+          persist();
+          render();
+        });
+
+        root.querySelector("#so-start-btn").addEventListener("click", () => {
+          const b1Sel = root.querySelector(`#so-b1-${firstBatTeamId}`);
+          const b2Sel = root.querySelector(`#so-b2-${firstBatTeamId}`);
+          const bwlSel = root.querySelector(`#so-bowl-${secondBatTeamId}`);
+
+          if (!b1Sel?.value || !b2Sel?.value || !bwlSel?.value) {
+            alert("Select both batters and the opening bowler before starting."); return;
+          }
+          if (b1Sel.value === b2Sel.value) {
+            alert("Opening batters must be different players."); return;
+          }
+
+          state.superOverCount = nextSoNum;
+          state.currentSuperOver = nextSoNum;
+          state._superOverFirstBatterId = firstBatTeamId;
+
+          // Store selections for second team's super over innings (used in inningsDone)
+          state._soSelections = state._soSelections || {};
+          state._soSelections[nextSoNum] = {
+            [firstBatTeamId]: {
+              batters: [b1Sel.value, b2Sel.value],
+              bowler: root.querySelector(`#so-bowl-${firstBatTeamId}`)?.value || null,
+            },
+            [secondBatTeamId]: {
+              batters: [
+                root.querySelector(`#so-b1-${secondBatTeamId}`)?.value,
+                root.querySelector(`#so-b2-${secondBatTeamId}`)?.value,
+              ],
+              bowler: bwlSel.value,
+            },
+          };
+
+          startInnings(firstBatTeamId,
+            state._soSelections[nextSoNum][firstBatTeamId].batters,
+            state._soSelections[nextSoNum][secondBatTeamId].bowler,
+            nextSoNum
+          );
+        });
+
+        updateStartBtn();
+      }
+
+      function updateStartBtn() {
+        const btn = root.querySelector("#so-start-btn");
+        if (!btn) return;
+        const allFilled = state.teams.every(t => {
+          const b1 = root.querySelector(`#so-b1-${t.id}`)?.value;
+          const b2 = root.querySelector(`#so-b2-${t.id}`)?.value;
+          const bwl = root.querySelector(`#so-bowl-${t.id}`)?.value;
+          return b1 && b2 && b1 !== b2 && bwl;
+        });
+        btn.disabled = !allFilled;
+      }
+
+      function renderSuperOverSetupGrid(el, firstId, secondId) {
+        if (!el) return;
+        el.innerHTML = "";
+        // Show first-batting team card on top
+        for (const teamId of [firstId, secondId]) {
+          const team = teamById(teamId);
+          if (!team) continue;
+          const opponentId = state.teams.find(t => t.id !== teamId)?.id;
+          const opponent = teamById(opponentId);
+          const card = document.createElement("div");
+          card.className = "cricket-so-team-card";
+
+          const isFirstBat = teamId === firstId;
+          card.innerHTML = `
+            <h3>${Scorely.escapeHtml(team.name)}
+              <span class="cricket-so-role-badge">${isFirstBat ? "🏏 Bats 1st" : "🏏 Bats 2nd"}</span>
+            </h3>
+            <div class="cricket-form-row">
+              <label>Batter 1 (on strike)
+                <select id="so-b1-${team.id}" class="cricket-select">
+                  <option value="">— select —</option>
+                  ${team.players.map(p => `<option value="${p.id}">${Scorely.escapeHtml(p.name)}</option>`).join("")}
+                </select>
+              </label>
+            </div>
+            <div class="cricket-form-row">
+              <label>Batter 2
+                <select id="so-b2-${team.id}" class="cricket-select">
+                  <option value="">— select —</option>
+                  ${team.players.map(p => `<option value="${p.id}">${Scorely.escapeHtml(p.name)}</option>`).join("")}
+                </select>
+              </label>
+            </div>
+            <div class="cricket-form-row">
+              <label>Bowler (from ${Scorely.escapeHtml(opponent?.name || "—")})
+                <select id="so-bowl-${team.id}" class="cricket-select">
+                  <option value="">— select —</option>
+                  ${(opponent?.players || []).map(p => `<option value="${p.id}">${Scorely.escapeHtml(p.name)}</option>`).join("")}
+                </select>
+              </label>
+            </div>
+          `;
+
+          // live validation for start button
+          card.querySelectorAll("select").forEach(s => s.addEventListener("change", updateStartBtn));
+          el.appendChild(card);
+        }
+      }
+
+      function renderSuperOverHistory() {
+        const soRounds = state.innings.filter(i => i.superOverNum > 0);
+        if (!soRounds.length) return "";
+        let html = `<div class="cricket-so-history"><strong>Super Over History</strong><ul>`;
+        const rounds = {};
+        for (const inn of soRounds) {
+          if (!rounds[inn.superOverNum]) rounds[inn.superOverNum] = [];
+          rounds[inn.superOverNum].push(inn);
+        }
+        for (const [num, innings] of Object.entries(rounds)) {
+          for (const inn of innings) {
+            const s = inningsSummary(inn);
+            const bt = teamById(inn.battingTeamId);
+            html += `<li>SO #${num} — ${Scorely.escapeHtml(bt?.name || "—")}: ${s.runs}/${s.wickets} (${s.overs} ov)</li>`;
+          }
+        }
+        html += `</ul></div>`;
+        return html;
+      }
+
+      buildCard();
+    }
+
+    /* ────────────────────────────────────────────────────────
+     *  Override inningsDone → super over second innings
+     *  When currentSuperOver > 0 and we're in inningsDone phase,
+     *  computeNextBattingTeam already returns the second team.
+     *  renderInningsStartForm is used, BUT for super overs we
+     *  pre-fill from saved _soSelections and start automatically.
+     * ──────────────────────────────────────────────────────── */
+
+    function renderSuperOverSecondInnings(root, battingTeam) {
+      const soNum = state.currentSuperOver;
+      const sel = state._soSelections?.[soNum]?.[battingTeam.id];
+      const bowlingTeamId = state.teams.find(t => t.id !== battingTeam.id)?.id;
+      const bowlerId = state._soSelections?.[soNum]?.[bowlingTeamId]?.bowler || null;
+
+      root.innerHTML = `
+        <section class="card cricket-super-over-offer-card">
+          <div class="cricket-super-over-badge">⚡ Super Over ${soNum > 1 ? "#" + soNum : ""}</div>
+          <h2>${Scorely.escapeHtml(battingTeam.name)}'s Turn</h2>
+          <p class="cricket-prompt-label">1st innings complete. Now ${Scorely.escapeHtml(battingTeam.name)} bats.</p>
+          ${renderMiniScoreboard()}
+          <div style="margin-top:12px;">
+            <button id="so-2nd-start-btn" class="cricket-start-btn">
+              ▶ Start ${Scorely.escapeHtml(battingTeam.name)}'s Super Over
+            </button>
+          </div>
+        </section>
+      `;
+
+      root.querySelector("#so-2nd-start-btn").addEventListener("click", () => {
+        const batters = sel?.batters || [battingTeam.players[0]?.id, battingTeam.players[1]?.id];
+        startInnings(battingTeam.id, batters.filter(Boolean), bowlerId, soNum);
+      });
+    }
+
+    /* ────────────────────────────────────────────────────────
      *  COMPLETE PHASE
      * ──────────────────────────────────────────────────────── */
 
     function renderCompletePhase(root) {
       const w = state.winner;
+      const wasSuperOver = state.superOverCount > 0;
       let winnerText = "Match complete.";
       if (w) {
-        if (w.type === "tie") winnerText = "🤝 Match tied!";
+        if (w.type === "tie") winnerText = "🤝 Match tied after all super overs!";
         else if (w.type === "draw") winnerText = "🤝 Match drawn!";
         else if (w.byWickets !== undefined) {
-          winnerText = `🏆 ${teamName(w.teamId)} won by ${w.byWickets} wicket${w.byWickets !== 1 ? "s" : ""}!`;
+          const suffix = wasSuperOver ? ` (Super Over)` : "";
+          winnerText = `🏆 ${teamName(w.teamId)} won by ${w.byWickets} wicket${w.byWickets !== 1 ? "s" : ""}${suffix}!`;
         } else if (w.byRuns !== undefined) {
-          winnerText = `🏆 ${teamName(w.teamId)} won by ${w.byRuns} run${w.byRuns !== 1 ? "s" : ""}!`;
+          const suffix = wasSuperOver ? ` (Super Over)` : "";
+          winnerText = `🏆 ${teamName(w.teamId)} won by ${w.byRuns} run${w.byRuns !== 1 ? "s" : ""}${suffix}!`;
         } else {
           winnerText = `🏆 ${teamName(w.teamId)} won!`;
         }
@@ -1767,11 +2140,22 @@
 
     function renderFullScorecards() {
       let html = "";
-      state.innings.forEach((inn, idx) => {
+      const regularInnings = state.innings.filter(i => !i.superOverNum);
+      state.innings.forEach(inn => {
         const battingTeam = teamById(inn.battingTeamId);
         const bowlingTeam = teamById(inn.bowlingTeamId);
         const s = inningsSummary(inn);
-        const label = `${battingTeam?.name || "—"} — Innings ${idx + 1}: ${s.runs}/${s.wickets} (${s.overs} ov)`;
+        let innsLabel;
+        if (inn.superOverNum > 0) {
+          const soInnings = state.innings.filter(i => i.superOverNum === inn.superOverNum);
+          const soIdx = soInnings.indexOf(inn);
+          const soLabel = inn.superOverNum > 1 ? `Super Over #${inn.superOverNum}` : "Super Over";
+          innsLabel = `${battingTeam?.name || "—"} — ${soLabel} (${soIdx === 0 ? "1st" : "2nd"} bat): ${s.runs}/${s.wickets} (${s.overs} ov)`;
+        } else {
+          const regIdx = regularInnings.indexOf(inn);
+          innsLabel = `${battingTeam?.name || "—"} — Innings ${regIdx + 1}: ${s.runs}/${s.wickets} (${s.overs} ov)`;
+        }
+        const label = innsLabel;
         const bStats = batterStats(inn.balls);
         const blStats = bowlerStats(inn.balls);
         const fow = fallOfWickets(inn.balls);
@@ -1834,10 +2218,13 @@
 
     function renderMatchSummary(el) {
       if (!el) return;
-      // Top scorer and best bowler across all innings
+      const regularInnings = state.innings.filter(i => !i.superOverNum);
+      const superOverInnings = state.innings.filter(i => i.superOverNum > 0);
+
+      // Stats from regular innings only for top scorer / best bowler
       const allBatterStats = {};
       const allBowlerStats = {};
-      for (const inn of state.innings) {
+      for (const inn of regularInnings) {
         const bs = batterStats(inn.balls);
         for (const [id, s] of Object.entries(bs)) {
           if (!allBatterStats[id]) allBatterStats[id] = { runs: 0, balls: 0 };
@@ -1861,10 +2248,26 @@
       if (bestBowler) {
         html += `<li>🎳 <strong>Best bowler:</strong> ${Scorely.escapeHtml(playerName(bestBowler[0]))} — ${bestBowler[1].wickets} wickets / ${bestBowler[1].runs} runs</li>`;
       }
-      for (const [idx, inn] of state.innings.entries()) {
+      for (const [regIdx, inn] of regularInnings.entries()) {
         const s = inningsSummary(inn);
         const bt = teamById(inn.battingTeamId);
-        html += `<li>Innings ${idx + 1}: ${Scorely.escapeHtml(bt?.name || "—")} ${s.runs}/${s.wickets} (${s.overs} ov)</li>`;
+        html += `<li>Innings ${regIdx + 1}: ${Scorely.escapeHtml(bt?.name || "—")} ${s.runs}/${s.wickets} (${s.overs} ov)</li>`;
+      }
+      if (superOverInnings.length > 0) {
+        html += `<li style="margin-top:10px;"><strong>⚡ Super Over${state.superOverCount > 1 ? "s" : ""}:</strong></li>`;
+        const rounds = {};
+        for (const inn of superOverInnings) {
+          if (!rounds[inn.superOverNum]) rounds[inn.superOverNum] = [];
+          rounds[inn.superOverNum].push(inn);
+        }
+        for (const [num, innings] of Object.entries(rounds)) {
+          const soLabel = Number(num) > 1 ? `SO #${num}` : "SO";
+          for (const [i, inn] of innings.entries()) {
+            const s = inningsSummary(inn);
+            const bt = teamById(inn.battingTeamId);
+            html += `<li>&nbsp;&nbsp;${soLabel} ${i === 0 ? "1st" : "2nd"} bat — ${Scorely.escapeHtml(bt?.name || "—")}: ${s.runs}/${s.wickets} (${s.overs} ov)</li>`;
+          }
+        }
       }
       html += `</ul>`;
       el.innerHTML = html;
@@ -1876,13 +2279,24 @@
 
     function renderMiniScoreboard() {
       if (state.innings.length === 0) return "";
-      const rows = state.innings.map((inn, idx) => {
+      const regularInnings = state.innings.filter(i => !i.superOverNum);
+      const rows = state.innings.map(inn => {
         const bt = teamById(inn.battingTeamId);
         const s = inningsSummary(inn);
         const isLive = !inn.closed;
-        return `<tr>
+        let innsLabel;
+        if (inn.superOverNum > 0) {
+          const soInnings = state.innings.filter(i => i.superOverNum === inn.superOverNum);
+          const soIdx = soInnings.indexOf(inn);
+          const soLabel = inn.superOverNum > 1 ? `SO #${inn.superOverNum}` : "SO";
+          innsLabel = `${soLabel} ${soIdx === 0 ? "1st" : "2nd"}`;
+        } else {
+          const regIdx = regularInnings.indexOf(inn);
+          innsLabel = `Inns ${regIdx + 1}`;
+        }
+        return `<tr${inn.superOverNum > 0 ? ' class="cricket-so-row"' : ""}>
           <td>${Scorely.escapeHtml(bt?.name || "—")}</td>
-          <td>Inns ${idx + 1}</td>
+          <td>${innsLabel}</td>
           <td><strong>${s.runs}/${s.wickets}</strong>${isLive ? " <span class='cricket-live-dot'>●</span>" : ""}</td>
           <td>${s.overs} ov</td>
           <td>${inn.closed ? Scorely.escapeHtml(inn.closeReason || "closed") : "live"}</td>
